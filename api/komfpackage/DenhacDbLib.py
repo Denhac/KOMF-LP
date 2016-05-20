@@ -57,3 +57,12 @@ class DenhacRadioDjDb(DenhacDb):
                                             envproperties.radiodj_db_user,
                                             envproperties.radiodj_db_password,
                                             envproperties.radiodj_db_schema)
+
+    def getGenreIdByName(self, name):
+        self.connect()
+        sql = "select id from genre where name = %s"
+        return self.executeQueryGetAllRows(sql, [name])[0]['id']
+
+    def upsertSongs(self, path, song_type, id_genre, duration, artist, album, year, copyright, title, publisher, composer):
+        sql = "CALL `komf_upsert_songs`(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        self.executeQueryNoResult(sql, [path, song_type, id_genre, duration, artist, album, year, copyright, title, publisher, composer])

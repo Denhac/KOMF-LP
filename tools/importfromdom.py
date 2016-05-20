@@ -108,13 +108,24 @@ def saveMetadata(filePath, row):
 
 def writeToDB(path, row):
 	radioDj = DenhacRadioDjDb()
-	radioDj.connect()
 
-	# TODO - need to write an upsert SP in the DB, then CALL it here.
-	# Let the DB handle the logic if-exists-then-update-else-insert
+	# Right now just show we can connect and select schema without error
+	#	print radioDj._connect
 
-# Right now just show we can connect and select schema without error
-	print radioDj._connect
+	# TODO - NEEDS TESTING:
+	genre_id = radioDj.getGenreIdByName(str(row['Genre']))
+	print "GenreID: ", genre_id
+	radioDj.upsertSongs(path,
+						song_type = 0,	# TODO - determine song_type from genre or other metadata
+						id_genre = genre_id,
+						duration = 0,	# TODO - calculate duration
+						artist = str(row['Production Company / Band']),
+						album = "Unknown Album",
+						year,
+						copyright = "Unknown Copyright",
+						title = str(row['Title']),
+						publisher = "Unknown Publisher",
+						composer = "Unknown Composer")
 
 
 

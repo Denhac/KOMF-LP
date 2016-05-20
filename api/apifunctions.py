@@ -113,6 +113,7 @@ def getfiles(filepath):
 	abs_path = validatepath(envproperties.BASE_HOSTING_DIR, filepath)
 
 	# If a file, ok stream it to the client (use specifically send_from_directory()) to avoid memory caps)
+	# TODO - should probably test that sometime.  Server has 2G I think, but will we have any mp3s that big anyway?
 	if os.path.isfile(abs_path):
 		return send_from_directory(os.path.dirname(abs_path), os.path.basename(abs_path))
 
