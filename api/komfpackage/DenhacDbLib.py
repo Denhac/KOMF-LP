@@ -34,7 +34,6 @@ class DenhacDb:
 
     def executeQueryGetCursor(self, sql, params):
         self.connect()
-#        self._lastUsedCursor = self._connect.cursor(MySQLdb.cursors.DictCursor)
         self._lastUsedCursor = self._connect.cursor(pymysql.cursors.DictCursor)
         self._lastUsedCursor.execute(sql, params)
         return self._lastUsedCursor

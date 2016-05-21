@@ -81,3 +81,5 @@ BEGIN
 
 END
 //
+DELIMITER ;
+

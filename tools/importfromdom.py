@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # Python includes
-import csv, grp, os, pwd, sys, urllib
+import csv, datetime, grp, os, pwd, sys, urllib
 
 # Flask and other third-party includes
 # TODO - Add logging to this program at some point...
@@ -23,6 +23,9 @@ from DenhacDbLib import DenhacDb, DenhacRadioDjDb
 # Pull UID and GUID globally since they are used in multiple helper functions
 uid = pwd.getpwnam(envproperties.APACHE_USER_NAME).pw_uid
 gid = grp.getgrnam(envproperties.APACHE_GROUP_NAME).gr_gid
+
+# Now is used in multiple places, so declare here
+now = datetime.datetime.now()
 
 def downloadFile(location, targetName = None):
 	if targetName is None:
@@ -78,8 +81,24 @@ def saveFile(row):
 	# (Also handle deleting from RadioDJ DB.)
 
 	# TODO - if broadcastFlag is Yes, then insert into RadiDJ DB
-	if broadcastFlag == 'Yes':
-		writeToDB(path, row)
+#	if broadcastFlag == 'Yes':
+	writeToDB(path, row)
+
+
+# yum install yasm gcc git
+# git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+# ./configure
+# make && make install
+def getDurationFromFile(filePath):
+	import subprocess
+	print "filePath: ", filePath
+	cmd = "ffprobe -i '" + filePath + "' -show_entries format=duration -v quiet -of csv=\"p=0\""
+	print "cmd: ", cmd
+	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+	duration = proc.stdout.read()
+	print "Duration: ", duration[:-4]
+	return duration[:-4]
+
 
 def saveMetadata(filePath, row):
 	# Create metadata in JSON format
@@ -93,6 +112,8 @@ def saveMetadata(filePath, row):
 	fields['fileurl']       = str(row['Audio File'])
 	# We don't really need fileURL; need to save local file path instead
 	fields['filepath']      = filePath
+	# Set year to the current year at the time of import
+	fields['year']          = now.year
 
 	jsonStr = JsonTools.ObjToJson(fields)
 
@@ -106,29 +127,25 @@ def saveMetadata(filePath, row):
 
 	os.chown(abs_path, uid, gid)
 
+
+
 def writeToDB(path, row):
 	radioDj = DenhacRadioDjDb()
 
-	# Right now just show we can connect and select schema without error
-	#	print radioDj._connect
-
-	# TODO - NEEDS TESTING:
 	genre_id = radioDj.getGenreIdByName(str(row['Genre']))
-	print "GenreID: ", genre_id
+
 	radioDj.upsertSongs(path,
 						song_type = 0,	# TODO - determine song_type from genre or other metadata
 						id_genre = genre_id,
-						duration = 0,	# TODO - calculate duration
+#						duration = 0,	# TODO - calculate duration
+						duration = getDurationFromFile(path),
 						artist = str(row['Production Company / Band']),
 						album = "Unknown Album",
-						year,
+						year = now.year,
 						copyright = "Unknown Copyright",
 						title = str(row['Title']),
 						publisher = "Unknown Publisher",
 						composer = "Unknown Composer")
-
-
-
 
 
 
