@@ -26,7 +26,7 @@ CREATE PROCEDURE `komf_upsert_songs` (i_path varchar(255),
                                       i_composer varchar(255)
 )
 BEGIN
-	INSERT INTO `radiodj161`.`songs`
+	INSERT INTO `radiodj`.`songs`
 	(
 	`path`,
 	`enabled`,
@@ -83,3 +83,15 @@ END
 //
 DELIMITER ;
 
+
+DROP PROCEDURE IF EXISTS `komf_delete_song`;
+
+DELIMITER //
+CREATE PROCEDURE `komf_delete_song` (i_path varchar(255))
+BEGIN
+
+	DELETE FROM songs WHERE path = i_path;
+
+END
+//
+DELIMITER ;

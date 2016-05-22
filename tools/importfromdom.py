@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # Python includes
-import csv, datetime, grp, os, pwd, sys, urllib
+import csv, datetime, grp, os, pwd, subprocess, sys, urllib
 
 # Flask and other third-party includes
 # TODO - Add logging to this program at some point...
@@ -27,6 +27,9 @@ gid = grp.getgrnam(envproperties.APACHE_GROUP_NAME).gr_gid
 # Now is used in multiple places, so declare here
 now = datetime.datetime.now()
 
+# Use one DB connection the whole run
+radioDj = DenhacRadioDjDb()
+
 def downloadFile(location, targetName = None):
 	if targetName is None:
 		targetName = location.split('/')[-1]
@@ -50,6 +53,12 @@ def printRow(row):
 	print 'Production Company / Band: ' + artist
 	print 'Authorized for Broadcast: ' + broadcastFlag
 
+def getLibraryPath(fileName):
+	return envproperties.UPLOAD_LIBRARY_FOLDER + "/" + fileName
+
+def getStagingPath(fileName):
+	return envproperties.UPLOAD_STAGING_FOLDER + "/" + fileName
+
 def saveFile(row):
 	(title, fileurl, postdate, theme, genre, artist, broadcastFlag) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Production Company / Band']), str(row['Authorized for Broadcast']))
 
@@ -58,47 +67,63 @@ def saveFile(row):
 	fileName = urllib.unquote(fileName).decode('utf8')
 	fileName = os.path.normpath(fileName)
 
-	# Determine correct target path based on broadcastFlag
-	path = ""
+	stagingPath = getStagingPath(fileName)
+	libraryPath = getLibraryPath(fileName)
+
+	# Check here in case Broadcast Flag has flipped back and forth since last time we saw the file:
 	if broadcastFlag == 'Yes':
-		path = envproperties.UPLOAD_LIBRARY_FOLDER + "/" + fileName
+		# If file is still in staging, move it to the library.
+		# Also move the metadata, but trust later code to regenerate it anyway.
+		if os.path.exists(stagingPath):
+			os.rename(stagingPath,               libraryPath)
+		if os.path.exists(stagingPath + '.metadata'):
+			os.rename(stagingPath + '.metadata', libraryPath + '.metadata')
 	else:
-		path = envproperties.UPLOAD_STAGING_FOLDER + "/" + fileName
+		# If file is in the library, with Broadcast flag No, then it got dis-approved for some reason.  Move it back to staging.
+		# Also move the metadata, but trust later code to regenerate it anyway.
+		if os.path.exists(libraryPath):
+			os.rename(libraryPath,               stagingPath)
+			# Also need to handle deleting from RadioDJ DB here. Since we moved the file back to staging, it will fail to play, but let's be nice and get it out of the DJ list.
+			radioDjDb.deleteSong(libraryPath)
 
-	# Download the file if not already exists (will appear in current dir)
-	if not os.path.exists(path):
+		if os.path.exists(libraryPath + '.metadata'):
+			os.rename(libraryPath + '.metadata', stagingPath + '.metadata')
+
+
+	# Determine correct target path based on broadcast Flag
+	targetPath = stagingPath
+	if broadcastFlag == 'Yes':
+		targetPath = libraryPath
+
+	# Download the file if not already exists:
+	# (It will appear in current dir, then we have to move it.)
+	if not os.path.exists(targetPath):
+		# Download it, move it to the target directory, & set owner
 		downloadFile(fileurl, fileName)
-
-		# Move it to the correct target directory & set owner
-		os.rename(fileName, path)
-		os.chown(path, uid, gid)
+		os.rename(fileName, targetPath)
+		os.chown(targetPath, uid, gid)
 
 	# Now save the song's metadata too
-	saveMetadata(path, row)
+	metadata = dict()
+	metadata = saveMetadata(targetPath, row)
 
-	# TODO - check the other staging/library path and remove the file if it exists there
-	# (To handle the flag getting checked and unchecked on the DOM side.)
-	# (Also handle deleting from RadioDJ DB.)
+	# If broadcastFlag is Yes, then insert into RadiDJ DB
+	if broadcastFlag == 'Yes':
+		writeToDB(targetPath, metadata)
 
-	# TODO - if broadcastFlag is Yes, then insert into RadiDJ DB
-#	if broadcastFlag == 'Yes':
-	writeToDB(path, row)
-
+def shellquote(s):
+	return "'" + s.replace("'", "'\\''") + "'"
 
 # yum install yasm gcc git
 # git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+# cd ffmpeg
 # ./configure
 # make && make install
 def getDurationFromFile(filePath):
-	import subprocess
-	print "filePath: ", filePath
-	cmd = "ffprobe -i '" + filePath + "' -show_entries format=duration -v quiet -of csv=\"p=0\""
-	print "cmd: ", cmd
+	cmd = "ffprobe -i " + shellquote(filePath) + " -show_entries format=duration -v quiet -of csv=\"p=0\""
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 	duration = proc.stdout.read()
-	print "Duration: ", duration[:-4]
-	return duration[:-4]
-
+	return duration[:-4]	# Reduce from 7 decimal places to 3
 
 def saveMetadata(filePath, row):
 	# Create metadata in JSON format
@@ -114,38 +139,35 @@ def saveMetadata(filePath, row):
 	fields['filepath']      = filePath
 	# Set year to the current year at the time of import
 	fields['year']          = now.year
+	# Calculate duration in seconds and set in metadata
+	fields['duration']      = getDurationFromFile(filePath)
 
 	jsonStr = JsonTools.ObjToJson(fields)
 
 	# Assuming we have all required fields, write the metadata to the filesystem & set owner
 	# This will overwrite file every time to pick up changes; which we want
-	# TODO - how to get updates to RadioDJ DB?
 	abs_path = filePath + ".metadata"
 	metadata_file = open(abs_path, 'w')
 	metadata_file.write(str(jsonStr))
 	metadata_file.close()
 
 	os.chown(abs_path, uid, gid)
+	return fields
 
-
-
-def writeToDB(path, row):
-	radioDj = DenhacRadioDjDb()
-
-	genre_id = radioDj.getGenreIdByName(str(row['Genre']))
+def writeToDB(path, fields):
+	genre_id = radioDj.getGenreIdByName(fields['genre'])
 
 	radioDj.upsertSongs(path,
 						song_type = 0,	# TODO - determine song_type from genre or other metadata
-						id_genre = genre_id,
-#						duration = 0,	# TODO - calculate duration
-						duration = getDurationFromFile(path),
-						artist = str(row['Production Company / Band']),
-						album = "Unknown Album",
-						year = now.year,
+						id_genre  = genre_id,
+						duration  = fields['duration'],
+						artist    = fields['artist'],
+						album     = "Unknown Album",
+						year      = now.year,
 						copyright = "Unknown Copyright",
-						title = str(row['Title']),
+						title     = fields['title'],
 						publisher = "Unknown Publisher",
-						composer = "Unknown Composer")
+						composer  = "Unknown Composer")
 
 
 
@@ -162,5 +184,6 @@ with open(fileName, "rb") as audiofile:
 
 	# Each row is a file to be downloaded, along with a few columns of metadata
 	for row in memreader:
-#		printRow(row)
 		saveFile(row)
+
+print "Done!"

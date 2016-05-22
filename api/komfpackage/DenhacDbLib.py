@@ -63,5 +63,11 @@ class DenhacRadioDjDb(DenhacDb):
         return self.executeQueryGetAllRows(sql, [name])[0]['id']
 
     def upsertSongs(self, path, song_type, id_genre, duration, artist, album, year, copyright, title, publisher, composer):
+        self.connect()
         sql = "CALL `komf_upsert_songs`(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.executeQueryNoResult(sql, [path, song_type, id_genre, duration, artist, album, year, copyright, title, publisher, composer])
+
+    def deleteSong(self, path):
+        self.connect()
+        sql = "CALL `komf_delete_song`(%s)"
+        self.executeQueryNoResult(sql, [path])
