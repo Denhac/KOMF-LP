@@ -113,7 +113,7 @@ def getfiles(filepath):
 	abs_path = validatepath(envproperties.BASE_HOSTING_DIR, filepath)
 
 	# If a file, ok stream it to the client (use specifically send_from_directory()) to avoid memory caps)
-	# TODO - should probably test that sometime.  Server has 2G I think, but will we have any mp3s that big anyway?
+	# TODO - should probably test that sometime.  Server has 2G I think, but will we have any mp3s that big anyway?  Nope; max on DOM site is 100MB anyway.
 	if os.path.isfile(abs_path):
 		return send_from_directory(os.path.dirname(abs_path), os.path.basename(abs_path))
 
@@ -123,7 +123,9 @@ def getfiles(filepath):
 		if os.path.isdir(os.path.join(abs_path, fileName)):
 			dirList.append(fileName)
 		else:
-			fileList.append(fileName)
+			# Exclude metadata files; they're implicit
+			if not fileName.endswith('.metadata'):
+				fileList.append(fileName)
 
 	return JsonTools.Reply(dict(files = fileList, subdirs = dirList))
 

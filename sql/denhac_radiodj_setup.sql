@@ -66,18 +66,18 @@ BEGIN
 	i_composer
 	)
 	ON DUPLICATE KEY UPDATE
-		`path` = i_path,
-        enabled = 1,
+		`path`      = i_path,
+        enabled     = 1,
 		`song_type` = i_song_type,
-		`id_genre` = i_id_genre,
-		`duration` = i_duration,
-		`artist` = i_artist,
-		`album` = i_album,
-		`year` = i_year,
+		`id_genre`  = i_id_genre,
+		`duration`  = i_duration,
+		`artist`    = i_artist,
+		`album`     = i_album,
+		`year`      = i_year,
 		`copyright` = i_copyright,
-	    `title` = i_title,
+	    `title`     = i_title,
 	    `publisher` = i_publisher,
-		`composer` = i_composer;
+		`composer`  = i_composer;
 
 END
 //

@@ -120,7 +120,7 @@ def shellquote(s):
 # ./configure
 # make && make install
 def getDurationFromFile(filePath):
-	cmd = "ffprobe -i " + shellquote(filePath) + " -show_entries format=duration -v quiet -of csv=\"p=0\""
+	cmd = "/usr/local/bin/ffprobe -i " + shellquote(filePath) + " -show_entries format=duration -v quiet -of csv=\"p=0\""
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 	duration = proc.stdout.read()
 	return duration[:-4]	# Reduce from 7 decimal places to 3
@@ -163,13 +163,11 @@ def writeToDB(path, fields):
 						duration  = fields['duration'],
 						artist    = fields['artist'],
 						album     = "Unknown Album",
-						year      = now.year,
+						year      = fields['year'],
 						copyright = "Unknown Copyright",
 						title     = fields['title'],
 						publisher = "Unknown Publisher",
 						composer  = "Unknown Composer")
-
-
 
 ######################################################################################
 #           Main Script
