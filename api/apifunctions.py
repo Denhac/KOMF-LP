@@ -31,7 +31,7 @@ app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024   # 1GB
 ###### Setting up the formatter for the log file
 ####################################################################################
 if app.debug is not True:
-	file_handler = RotatingFileHandler('/var/www/log/apifunctions.log', maxBytes=1024 * 1024 * 100, backupCount=20)
+	file_handler = RotatingFileHandler(envproperties.API_LOG_FILE, maxBytes=1024 * 1024 * 100, backupCount=20)
 	file_handler.setLevel(logging.ERROR)
 	formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 	file_handler.setFormatter(formatter)

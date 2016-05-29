@@ -60,12 +60,30 @@ class DenhacRadioDjDb(DenhacDb):
     def getGenreIdByName(self, name):
         self.connect()
         sql = "select id from genre where name = %s"
-        return self.executeQueryGetAllRows(sql, [name])[0]['id']
+        rows = self.executeQueryGetAllRows(sql, [name])
 
-    def upsertSongs(self, path, song_type, id_genre, duration, artist, album, year, copyright, title, publisher, composer):
+        # If genre not found, find the ID for "UNKNOWN" instead
+        if len(rows) == 0:
+            sql = "select id from genre where name = 'UNKNOWN'"
+            rows = self.executeQueryGetAllRows(sql, None)
+
+        return rows[0]['id']
+
+    def getSubcategoryIdByName(self, name):
         self.connect()
-        sql = "CALL `komf_upsert_songs`(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-        self.executeQueryNoResult(sql, [path, song_type, id_genre, duration, artist, album, year, copyright, title, publisher, composer])
+        sql = "select ID from subcategory where name = %s"
+        rows = self.executeQueryGetAllRows(sql, [name])
+
+        # If subcategory not found, find the ID for "UNKNOWN" instead
+        if len(rows) == 0:
+            sql = "select ID from subcategory where name = 'UNKNOWN'"
+            rows = self.executeQueryGetAllRows(sql, None)
+        return rows[0]['ID']
+
+    def upsertSongs(self, path, song_type, id_subcat, id_genre, duration, artist, album, year, copyright, title, publisher, composer, cue_times):
+        self.connect()
+        sql = "CALL `komf_upsert_songs`(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        self.executeQueryNoResult(sql, [path, song_type, id_subcat, id_genre, duration, artist, album, year, copyright, title, publisher, composer, cue_times])
 
     def deleteSong(self, path):
         self.connect()

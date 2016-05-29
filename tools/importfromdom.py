@@ -1,14 +1,8 @@
 #!/usr/bin/python
 
 # Python includes
-import csv, datetime, grp, os, pwd, subprocess, sys, urllib
-
-# Flask and other third-party includes
-# TODO - Add logging to this program at some point...
-
-#from logging.handlers import RotatingFileHandler
-#from flask import Flask, request, session, render_template, redirect, url_for, abort, send_from_directory, jsonify
-#from werkzeug import secure_filename
+import csv, datetime, grp, logging, os, pwd, subprocess, sys, threading, urllib
+from logging.handlers import RotatingFileHandler
 
 # Our own includes go here
 # insert() makes our path the first searched entry, as opposed to append()
@@ -18,8 +12,28 @@ from DenhacJsonLib import JsonTools
 from DenhacDbLib import DenhacDb, DenhacRadioDjDb
 
 ######################################################################################
-#           Helper Functions
+#           Global Construction / Configuration
 ######################################################################################
+# Save our PID for later use
+pid = os.getpid()
+pidfile = '/tmp/importfromdom.pid'
+
+# TODO - generalize this to a new DenhacLogger class in the next refactoring
+appLogger = logging.getLogger('PID:' + str(pid))
+#appLogger.setLevel(logging.INFO)
+appLogger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+handler = RotatingFileHandler(envproperties.IMPORT_LOG_FILE, maxBytes=1024 * 1024 * 10, backupCount=20)
+handler.setFormatter(formatter)
+
+appLogger.addHandler(handler)
+appLogger.debug("Starting up.")
+
+# Tried this: http://stackoverflow.com/questions/7157234/subprocess-stdout-stderr-to-finite-size-logfile
+# Failed, and I don't feel like subprocessing this yet to fix it.
+
 # Pull UID and GUID globally since they are used in multiple helper functions
 uid = pwd.getpwnam(envproperties.APACHE_USER_NAME).pw_uid
 gid = grp.getgrnam(envproperties.APACHE_GROUP_NAME).gr_gid
@@ -29,6 +43,42 @@ now = datetime.datetime.now()
 
 # Use one DB connection the whole run
 radioDj = DenhacRadioDjDb()
+
+# Track total # of files downloaded/moved; log at the end
+totalRows           = 0
+totalNewFiles       = 0
+filesMovedToLibrary = 0
+filesMovedToStaging = 0
+
+######################################################################################
+#           Helper Functions
+######################################################################################
+def is_pid_running(pid):
+	""" Check For the existence of a unix pid. """
+	try:
+		os.kill(pid, 0)
+	except OSError:
+		return False
+	else:
+		return True
+
+def createPidFile():
+	global pid, pidfile
+
+	if os.path.isfile(pidfile):
+		pidFromFile = int(open(pidfile).read())
+
+		if is_pid_running(pidFromFile):
+			appLogger.error("Another instance of this script is running under PID %s.  Exiting.", str(pidFromFile))
+			exit(0)
+
+	# Write out our own PID now if we're continuing
+	open(pidfile, 'w').write(str(pid))
+
+def removePidFile():
+	global pidfile
+	if os.path.isfile(pidfile):
+		os.remove(pidfile)
 
 def downloadFile(location, targetName = None):
 	if targetName is None:
@@ -41,34 +91,28 @@ def downloadFile(location, targetName = None):
 	urllib.urlretrieve(location, targetName)
 	return targetName
 
-def printRow(row):
-	(title, fileurl, postdate, theme, genre, artist, broadcastFlag) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Production Company / Band']), str(row['Authorized for Broadcast']))
-
-	print '==============================='
-	print 'Title: ' + title
-	print 'Audio File: ' + fileurl
-	print 'Post date: ' + postdate
-	print 'Theme: ' + theme
-	print 'Genre: ' + genre
-	print 'Production Company / Band: ' + artist
-	print 'Authorized for Broadcast: ' + broadcastFlag
-
 def getLibraryPath(fileName):
 	return envproperties.UPLOAD_LIBRARY_FOLDER + "/" + fileName
 
 def getStagingPath(fileName):
 	return envproperties.UPLOAD_STAGING_FOLDER + "/" + fileName
 
+def getFrontendPath(fileName):
+	return envproperties.RADIODJ_CLIENT_FOLDER + "/" + fileName
+
 def saveFile(row):
-	(title, fileurl, postdate, theme, genre, artist, broadcastFlag) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Production Company / Band']), str(row['Authorized for Broadcast']))
+	global totalNewFiles, filesMovedToLibrary, filesMovedToStaging, radioDj, uid, gid
+
+	(title, fileurl, postdate, theme, genre, artist, broadcastFlag,  indecencyFlag) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Production Company / Band']), str(row['Authorized for Broadcast']), str(row['Indecent Content']))
 
 	# Set the URL-decoded filename
 	fileName = fileurl.split('/')[-1]
 	fileName = urllib.unquote(fileName).decode('utf8')
 	fileName = os.path.normpath(fileName)
 
-	stagingPath = getStagingPath(fileName)
-	libraryPath = getLibraryPath(fileName)
+	stagingPath  = getStagingPath(fileName)
+	libraryPath  = getLibraryPath(fileName)
+	frontendPath = getFrontendPath(fileName)
 
 	# Check here in case Broadcast Flag has flipped back and forth since last time we saw the file:
 	if broadcastFlag == 'Yes':
@@ -76,6 +120,7 @@ def saveFile(row):
 		# Also move the metadata, but trust later code to regenerate it anyway.
 		if os.path.exists(stagingPath):
 			os.rename(stagingPath,               libraryPath)
+			filesMovedToLibrary += 1
 		if os.path.exists(stagingPath + '.metadata'):
 			os.rename(stagingPath + '.metadata', libraryPath + '.metadata')
 	else:
@@ -83,12 +128,12 @@ def saveFile(row):
 		# Also move the metadata, but trust later code to regenerate it anyway.
 		if os.path.exists(libraryPath):
 			os.rename(libraryPath,               stagingPath)
-			# Also need to handle deleting from RadioDJ DB here. Since we moved the file back to staging, it will fail to play, but let's be nice and get it out of the DJ list.
-			radioDjDb.deleteSong(libraryPath)
+			filesMovedToStaging += 1
+			# Remove from RadioDJ DB. Since we moved the file back to staging, it will fail to play, but let's be nice and get it out of the DJ list.
+			radioDj.deleteSong(frontendPath)
 
 		if os.path.exists(libraryPath + '.metadata'):
 			os.rename(libraryPath + '.metadata', stagingPath + '.metadata')
-
 
 	# Determine correct target path based on broadcast Flag
 	targetPath = stagingPath
@@ -102,45 +147,64 @@ def saveFile(row):
 		downloadFile(fileurl, fileName)
 		os.rename(fileName, targetPath)
 		os.chown(targetPath, uid, gid)
+		totalNewFiles += 1
+
+	# Add frontendpath to row to carry it through to metadata
+	row['frontendPath'] = frontendPath
 
 	# Now save the song's metadata too
 	metadata = dict()
 	metadata = saveMetadata(targetPath, row)
 
-	# If broadcastFlag is Yes, then insert into RadiDJ DB
+	# If broadcastFlag is Yes, then insert into RadioDJ DB
 	if broadcastFlag == 'Yes':
-		writeToDB(targetPath, metadata)
+		writeToDB(frontendPath, metadata)
 
 def shellquote(s):
 	return "'" + s.replace("'", "'\\''") + "'"
 
-# yum install yasm gcc git
-# git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
-# cd ffmpeg
-# ./configure
-# make && make install
+# HUGE FRIGGING THANK YOU TO https://gist.github.com/icaliman/1ee56b7f3ed5abf0dec1
+# (Installing ffmpeg and libmp3lame where they worked nicely together!)
+# But with replacing this command:
+# PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
+#  --prefix="$HOME/ffmpeg_build" \
+#  --extra-cflags="-I$HOME/ffmpeg_build/include" \
+#  --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
+#  --bindir="$HOME/bin" \
+#  --enable-libmp3lame
 def getDurationFromFile(filePath):
-	cmd = "/usr/local/bin/ffprobe -i " + shellquote(filePath) + " -show_entries format=duration -v quiet -of csv=\"p=0\""
+	cmd = "/root/bin/ffprobe -i " + shellquote(filePath) + " -show_entries format=duration -v quiet -of csv=\"p=0\""
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 	duration = proc.stdout.read()
 	return duration[:-4]	# Reduce from 7 decimal places to 3
 
 def saveMetadata(filePath, row):
+	global uid, gid
+
 	# Create metadata in JSON format
 	fields = dict()
+	# Fields directly from the csv
 	fields['title']         = str(row['Title'])
 	fields['postdate']      = str(row['Post date'])
 	fields['theme']         = str(row['Theme'])
 	fields['genre']         = str(row['Genre'])
 	fields['artist']        = str(row['Production Company / Band'])
 	fields['broadcastFlag'] = str(row['Authorized for Broadcast'])
+	fields['indecencyFlag'] = str(row['Indecent Content'])
 	fields['fileurl']       = str(row['Audio File'])
 	# We don't really need fileURL; need to save local file path instead
 	fields['filepath']      = filePath
+	fields['frontendPath']  = row['frontendPath']
 	# Set year to the current year at the time of import
 	fields['year']          = now.year
 	# Calculate duration in seconds and set in metadata
 	fields['duration']      = getDurationFromFile(filePath)
+	# RadioDJ really likes having these tags... dunno why it can't calculate it itself from the duration, but whatever.
+	fields['cue_times']     = "&sta=0&xta=" + str(float(fields['duration']) - float(envproperties.FADE_OUT_SEC))+ "&end=" + fields['duration'] + "&fin=" + str(envproperties.FADE_IN_SEC) + "&fou=" + str(envproperties.FADE_OUT_SEC)
+
+	# Set explicit "Unknown" if we don't know the artist
+	if not fields['artist']:
+		fields['artist'] = 'Unknown Artist'
 
 	jsonStr = JsonTools.ObjToJson(fields)
 
@@ -155,10 +219,14 @@ def saveMetadata(filePath, row):
 	return fields
 
 def writeToDB(path, fields):
-	genre_id = radioDj.getGenreIdByName(fields['genre'])
+	global radioDj
+
+	genre_id  = radioDj.getGenreIdByName(fields['genre'])
+	subcat_id = radioDj.getSubcategoryIdByName(fields['theme'])
 
 	radioDj.upsertSongs(path,
-						song_type = 0,	# TODO - determine song_type from genre or other metadata
+						song_type = 0,
+						id_subcat = subcat_id,
 						id_genre  = genre_id,
 						duration  = fields['duration'],
 						artist    = fields['artist'],
@@ -167,21 +235,37 @@ def writeToDB(path, fields):
 						copyright = "Unknown Copyright",
 						title     = fields['title'],
 						publisher = "Unknown Publisher",
-						composer  = "Unknown Composer")
+						composer  = "Unknown Composer",
+						cue_times = fields['cue_times'])
 
 ######################################################################################
 #           Main Script
 ######################################################################################
+try:
+	createPidFile()
 
-# Save a copy of the csv from DOM.  (This contains all song files submitted by DOM members.)
-fileName = downloadFile(envproperties.URL_FOR_DOM_FILELIST)
+	# Save a copy of the csv from DOM.  (This contains all files of Type=Audio submitted by DOM members.)
+	fileName = downloadFile(envproperties.URL_FOR_DOM_FILELIST)
 
-# Read it in, parsing it as a csv
-with open(fileName, "rb") as audiofile:
-	memreader = csv.DictReader(audiofile, delimiter=',', quotechar='"')
+	# Read it in, parsing it as a csv
+	with open(fileName, "rb") as audiofile:
+		memreader = csv.DictReader(audiofile, delimiter=',', quotechar='"')
 
-	# Each row is a file to be downloaded, along with a few columns of metadata
-	for row in memreader:
-		saveFile(row)
+		# Each row is a file to be downloaded, along with a few columns of metadata
+		for row in memreader:
+			saveFile(row)
+			totalRows += 1
 
-print "Done!"
+	if totalRows > 0:
+		appLogger.debug("Total rows analyzed: " + str(totalRows))
+	if totalNewFiles > 0:
+		appLogger.info("Total new files downloaded: " + str(totalNewFiles))
+	if filesMovedToLibrary > 0:
+		appLogger.info("Total files approved and moved to library: " + str(filesMovedToLibrary))
+	if filesMovedToStaging > 0:
+		appLogger.info("Total files un-approved and moved back to staging: " + str(filesMovedToStaging))
+
+	appLogger.debug("Complete.")
+
+finally:
+	removePidFile()
