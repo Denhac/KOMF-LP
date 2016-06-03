@@ -25,13 +25,14 @@ CREATE PROCEDURE `komf_upsert_songs` (i_path varchar(255),
                                       i_title varchar(255),
                                       i_publisher varchar(255),
                                       i_composer varchar(255),
-                                      i_cue_times varchar(255)
+                                      i_cue_times varchar(255),
+                                      i_enabled int(1),
+                                      i_comments text
 )
 BEGIN
 	INSERT INTO `radiodj`.`songs`
 	(
 	`path`,
-	`enabled`,
 	`song_type`,
 	`id_subcat`,
 	`id_genre`,
@@ -47,11 +48,12 @@ BEGIN
 	`isrc`,
 	`bpm`,
 	`composer`,
-    `cue_times`
+    `cue_times`,
+    `enabled`,
+    `comments`
 	)
 	VALUES
 	(i_path,
-	1,
 	i_song_type,
 	i_id_subcat,
 	i_id_genre,
@@ -67,11 +69,12 @@ BEGIN
 	'Unknown',
 	0,
 	i_composer,
-    i_cue_times
+    i_cue_times,
+    i_enabled,
+    i_comments
 	)
 	ON DUPLICATE KEY UPDATE
 		`path` = i_path,
-        enabled = 1,
 		`song_type` = i_song_type,
 		`id_subcat` = i_id_subcat,
 		`id_genre` = i_id_genre,
@@ -83,7 +86,8 @@ BEGIN
 	    `title` = i_title,
 	    `publisher` = i_publisher,
 		`composer` = i_composer/*,   -- DO NOT OVERWRITE CUE_TIMES; THE DJS NEED TO SAVE THESE IN RADIODJ SEPARATELY
-        `cue_times` = i_cue_times*/
+        `cue_times` = i_cue_times    -- Also do not overwrite enabled flag or comments during an update; don't even add them here.
+									*/
         ;
 END
 //
@@ -108,12 +112,13 @@ TRUNCATE TABLE category;
 INSERT INTO category VALUES
 (1,'Music'),
 (2,'Spoken Word'),
-(3,'Talk');
+(3,'Sweepers'),
+(4,'Talk');
 
 INSERT INTO subcategory VALUES
-(1,3,'Educational & STEM'),
-(2,3,'Neighborhood & Community Events'),
-(3,3,'Talk Radio, News, & Culture'),
+(1,4,'Educational & STEM'),
+(2,4,'Neighborhood & Community Events'),
+(3,4,'Talk Radio, News, & Culture'),
 (4,2,'Poetry, Comedy, & Avant-Garde'),
 (5,1,'Music: Classical, Solo Instument, & Vocal'),
 (6,1,'Music: Reggae, Latin, & World'),
@@ -121,8 +126,13 @@ INSERT INTO subcategory VALUES
 (8,1,'Music: Rock, Indie, Punk, & Post'),
 (9,1,'Music: Hip-Hop, R&B, & Jazz'),
 (10,1,'Music: Dance & Electronic'),
-(11,1,'UNKNOWN');
-
+(11,1,'UNKNOWN'),
+(12,3,'Day Sweepers'),
+(13,3,'Night Sweepers'),
+(14,3,'Jingles'),
+(15,3,'Station ID'),
+(16,3,'Band Station ID'),
+(17,3,'Underwriting');
 
 -- Set up Genres to match RadiDJ with new DOM entries
 

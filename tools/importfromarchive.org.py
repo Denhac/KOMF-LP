@@ -110,7 +110,10 @@ allRecords = data['docs']
 
 temptotal = 0
 for record in allRecords:
-	processRecord(record)
+	try:
+		processRecord(record)
+	except:
+		print "Something failed... continuing to next file."
 
 #	# TODO - remove this when we're ready to run for the full set
 #	temptotal += 1

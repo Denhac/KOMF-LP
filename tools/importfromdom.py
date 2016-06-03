@@ -11,6 +11,10 @@ import envproperties
 from DenhacJsonLib import JsonTools
 from DenhacDbLib import DenhacDb, DenhacRadioDjDb
 
+# Third-party includes
+# pip install eyed3
+import eyed3
+
 ######################################################################################
 #           Global Construction / Configuration
 ######################################################################################
@@ -98,12 +102,12 @@ def getStagingPath(fileName):
 	return envproperties.UPLOAD_STAGING_FOLDER + "/" + fileName
 
 def getFrontendPath(fileName):
-	return envproperties.RADIODJ_CLIENT_FOLDER + "/" + fileName
+	return envproperties.RADIODJ_CLIENT_FOLDER + "\\" + fileName
 
 def saveFile(row):
 	global totalNewFiles, filesMovedToLibrary, filesMovedToStaging, radioDj, uid, gid
 
-	(title, fileurl, postdate, theme, genre, artist, broadcastFlag,  indecencyFlag) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Production Company / Band']), str(row['Authorized for Broadcast']), str(row['Indecent Content']))
+	(title, fileurl, postdate, theme, genre, artist, broadcastFlag,  indecencyFlag, outroUrl) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Production Company / Band']), str(row['Authorized for Broadcast']), str(row['Indecent Content']), str(row['DJ Outro']))
 
 	# Set the URL-decoded filename
 	fileName = fileurl.split('/')[-1]
@@ -149,6 +153,20 @@ def saveFile(row):
 		os.chown(targetPath, uid, gid)
 		totalNewFiles += 1
 
+	# Download the outro file if not already exists
+	if outroUrl:
+		outroFile = outroUrl.rsplit('/', 1)[-1]
+		outroFile = urllib.unquote(outroFile).decode('utf8')
+		outroFile = os.path.normpath(outroFile)
+
+		outroPath = targetPath.rsplit('/', 1)[0] + '/' + outroFile
+
+		if not os.path.exists(outroPath):
+			downloadFile(outroUrl, outroFile)
+			os.rename(outroFile, outroPath)
+			os.chown(outroPath, uid, gid)
+			totalNewFiles += 1
+
 	# Add frontendpath to row to carry it through to metadata
 	row['frontendPath'] = frontendPath
 
@@ -179,7 +197,7 @@ def getDurationFromFile(filePath):
 	return duration[:-4]	# Reduce from 7 decimal places to 3
 
 def saveMetadata(filePath, row):
-	global uid, gid
+	global uid, gid, radioDj
 
 	# Create metadata in JSON format
 	fields = dict()
@@ -189,9 +207,11 @@ def saveMetadata(filePath, row):
 	fields['theme']         = str(row['Theme'])
 	fields['genre']         = str(row['Genre'])
 	fields['artist']        = str(row['Production Company / Band'])
+	fields['album']         = str(row['Album/Project'])
 	fields['broadcastFlag'] = str(row['Authorized for Broadcast'])
 	fields['indecencyFlag'] = str(row['Indecent Content'])
 	fields['fileurl']       = str(row['Audio File'])
+	fields['outroFile']     = str(row['DJ Outro'])
 	# We don't really need fileURL; need to save local file path instead
 	fields['filepath']      = filePath
 	fields['frontendPath']  = row['frontendPath']
@@ -201,10 +221,68 @@ def saveMetadata(filePath, row):
 	fields['duration']      = getDurationFromFile(filePath)
 	# RadioDJ really likes having these tags... dunno why it can't calculate it itself from the duration, but whatever.
 	fields['cue_times']     = "&sta=0&xta=" + str(float(fields['duration']) - float(envproperties.FADE_OUT_SEC))+ "&end=" + fields['duration'] + "&fin=" + str(envproperties.FADE_IN_SEC) + "&fou=" + str(envproperties.FADE_OUT_SEC)
+	# Unknown fields at this time but required by RadioDJ DB
+	fields['copyright'] = "Unknown Copyright"
+	fields['publisher'] = "Unknown Publisher"
+	fields['composer']  = "Unknown Composer"
 
-	# Set explicit "Unknown" if we don't know the artist
-	if not fields['artist']:
+	# For each of the following fields: artist, album, /*year,*/ genre
+	# If DOM is missing value, but mp3 ID3 has it, use ID3 tag
+	# If DOm value exists but mp3 ID3 tag does not have it, save to ID3 tag
+	# else Unknown
+
+	eyed3.log.setLevel("ERROR")
+	audiofile = eyed3.load(filePath)
+	tag = audiofile.tag
+	writeTag = False
+
+	#############################  artist  ################################
+	# IF DOM is missing the value, but ID3 has it, save to our metadata
+	if not fields['artist'] and tag is not None and tag.artist is not None:
+		fields['artist'] = tag.artist
+
+	# IF DOM value exists and ID3 tag does not, save to ID3
+	if fields['artist'] and tag is not None and tag.artist is None:
+		tag.artist = fields['artist'].decode('unicode-escape')
+		writeTag = True
+
+	# IF they were both missing, set to Unknown
+	if not fields['artist'] and (tag is None or tag.artist is None):
 		fields['artist'] = 'Unknown Artist'
+
+
+	#############################  album  #################################
+	# IF DOM is missing the value, but ID3 has it, save to our metadata
+	if not fields['album'] and tag is not None and tag.album is not None:
+		fields['album'] = tag.album
+
+	# IF DOM value exists and ID3 tag does not, save to ID3
+	if fields['album'] and tag is not None and tag.album is None:
+		tag.album = fields['album'].decode('unicode-escape')
+		writeTag = True
+
+	# IF they were both missing, set to Unknown
+	if not fields['album'] and (tag is None or tag.album is None):
+		fields['album'] = 'Unknown Album'
+
+
+	#############################  genre  #################################
+	genre_id  = radioDj.getGenreIdByName(fields['genre'])
+	# IF DOM is missing the value, but ID3 has it, save to our metadata
+	if genre_id == 60 and tag is not None and tag.genre is not None:
+		fields['genre'] = tag.genre.name
+
+	# IF DOM value exists and ID3 tag does not, save to ID3
+	if fields['genre'] and tag is not None and tag.genre is None:
+		tag.genre = fields['genre'].decode('unicode-escape')
+		writeTag = True
+
+	if writeTag and tag is not None:
+		try:
+			tag.save()
+			appLogger.debug("Saved new ID3 tag:" + filePath)
+		except NotImplementedError:		# eyed3 fails to write ID3 v2.2 tags
+			pass
 
 	jsonStr = JsonTools.ObjToJson(fields)
 
@@ -218,11 +296,24 @@ def saveMetadata(filePath, row):
 	os.chown(abs_path, uid, gid)
 	return fields
 
+
+def getFilenameFromUrl(url):
+	fileName = url.rsplit('/', 1)[-1]
+	fileName = urllib.unquote(fileName).decode('utf8')
+	fileName = os.path.normpath(fileName)
+	return fileName
+
 def writeToDB(path, fields):
 	global radioDj
 
 	genre_id  = radioDj.getGenreIdByName(fields['genre'])
 	subcat_id = radioDj.getSubcategoryIdByName(fields['theme'])
+
+	enabled = 1
+	comments = ''
+	if fields['indecencyFlag'] == "Yes":
+		enabled  = 0
+		comments = "Importing with enabled = OFF due to Indecent content.  Change flag manually to schedule."
 
 	radioDj.upsertSongs(path,
 						song_type = 0,
@@ -230,13 +321,36 @@ def writeToDB(path, fields):
 						id_genre  = genre_id,
 						duration  = fields['duration'],
 						artist    = fields['artist'],
-						album     = "Unknown Album",
+						album     = fields['album'],
 						year      = fields['year'],
-						copyright = "Unknown Copyright",
+						copyright = fields['copyright'],
 						title     = fields['title'],
-						publisher = "Unknown Publisher",
-						composer  = "Unknown Composer",
-						cue_times = fields['cue_times'])
+						publisher = fields['publisher'],
+						composer  = fields['composer'],
+						cue_times = fields['cue_times'],
+						enabled   = enabled,
+						comments  = comments)
+
+	# IF an outro file exists, insert it too
+	if fields['outroFile']:
+		outroFilename = getFilenameFromUrl(fields['outroFile'])
+		outroPath = getFrontendPath(outroFilename)
+
+		radioDj.upsertSongs(outroPath,
+							song_type = 0,
+							id_subcat = 19,		# Sweeper / Outro
+							id_genre  = genre_id,
+							duration  = getDurationFromFile(getLibraryPath(outroFilename)),
+							artist    = fields['artist'],
+							album     = fields['album'],
+							year      = fields['year'],
+							copyright = fields['copyright'],
+							title     = fields['title'] + ' - OUTRO',
+							publisher = fields['publisher'],
+							composer  = fields['composer'],
+							cue_times = fields['cue_times'],
+							enabled   = enabled,
+							comments  = comments)
 
 ######################################################################################
 #           Main Script
