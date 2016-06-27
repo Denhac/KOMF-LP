@@ -12,7 +12,6 @@ from DenhacJsonLib import JsonTools
 from DenhacDbLib import DenhacDb, DenhacRadioDjDb
 
 # Third-party includes
-# pip install eyed3
 import eyed3
 
 ######################################################################################
@@ -23,7 +22,11 @@ pid = os.getpid()
 pidfile = '/tmp/importfromdom.pid'
 
 # TODO - generalize this to a new DenhacLogger class in the next refactoring
-appLogger = logging.getLogger('PID:' + str(pid))
+#appLogger = logging.getLogger('PID:' + str(pid))
+appLogger = logging.getLogger('ImportLogger')
+appLogger.propagate = False
+
+# TODO - revert to INFO once we're stable
 #appLogger.setLevel(logging.INFO)
 appLogger.setLevel(logging.DEBUG)
 
@@ -34,9 +37,6 @@ handler.setFormatter(formatter)
 
 appLogger.addHandler(handler)
 appLogger.debug("Starting up.")
-
-# Tried this: http://stackoverflow.com/questions/7157234/subprocess-stdout-stderr-to-finite-size-logfile
-# Failed, and I don't feel like subprocessing this yet to fix it.
 
 # Pull UID and GUID globally since they are used in multiple helper functions
 uid = pwd.getpwnam(envproperties.APACHE_USER_NAME).pw_uid
@@ -60,7 +60,7 @@ filesMovedToStaging = 0
 def is_pid_running(pid):
 	""" Check For the existence of a unix pid. """
 	try:
-		os.kill(pid, 0)
+		os.kill(pid, 0)		# Sig 0 is "are you there, process? What's your status?"
 	except OSError:
 		return False
 	else:
@@ -107,6 +107,7 @@ def getFrontendPath(fileName):
 def saveFile(row):
 	global totalNewFiles, filesMovedToLibrary, filesMovedToStaging, radioDj, uid, gid
 
+	# Transform from csv columns to local vars
 	(title, fileurl, postdate, theme, genre, artist, broadcastFlag,  indecencyFlag, outroUrl) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Production Company / Band']), str(row['Authorized for Broadcast']), str(row['Indecent Content']), str(row['DJ Outro']))
 
 	# Set the URL-decoded filename
@@ -226,10 +227,10 @@ def saveMetadata(filePath, row):
 	fields['publisher'] = "Unknown Publisher"
 	fields['composer']  = "Unknown Composer"
 
-	# For each of the following fields: artist, album, /*year,*/ genre
-	# If DOM is missing value, but mp3 ID3 has it, use ID3 tag
-	# If DOm value exists but mp3 ID3 tag does not have it, save to ID3 tag
-	# else Unknown
+	# For each of the following fields: artist, album, genre:
+	# 	If DOM is missing value, but mp3 ID3 has it, use ID3 tag
+	# 	If DOm value exists but mp3 ID3 tag does not have it, save to ID3 tag
+	# 	else Unknown
 
 	eyed3.log.setLevel("ERROR")
 	audiofile = eyed3.load(filePath)
@@ -309,27 +310,37 @@ def writeToDB(path, fields):
 	genre_id  = radioDj.getGenreIdByName(fields['genre'])
 	subcat_id = radioDj.getSubcategoryIdByName(fields['theme'])
 
-	enabled = 1
-	comments = ''
+	# Set certain defaults that may be changed if we have an Indecent file
+	enabled      = 1
+	comments     = ''
+	title        = fields['title']
+	play_limit   = 0
+	limit_action = 0
+
 	if fields['indecencyFlag'] == "Yes":
-		enabled  = 0
-		comments = "Importing with enabled = OFF due to Indecent content.  Change flag manually to schedule."
+		enabled      = 0
+		comments     = "Importing with enabled = OFF due to Indecent content.  Change flag manually to schedule."
+		title       += " - EXPLICIT"
+		play_limit   = 1
+		limit_action = 1
 
 	radioDj.upsertSongs(path,
-						song_type = 0,
-						id_subcat = subcat_id,
-						id_genre  = genre_id,
-						duration  = fields['duration'],
-						artist    = fields['artist'],
-						album     = fields['album'],
-						year      = fields['year'],
-						copyright = fields['copyright'],
-						title     = fields['title'],
-						publisher = fields['publisher'],
-						composer  = fields['composer'],
-						cue_times = fields['cue_times'],
-						enabled   = enabled,
-						comments  = comments)
+						song_type    = 0,			# Regular songs are 0 (See Dave's email)
+						id_subcat    = subcat_id,
+						id_genre     = genre_id,
+						duration     = fields['duration'],
+						artist       = fields['artist'],
+						album        = fields['album'],
+						year         = fields['year'],
+						copyright    = fields['copyright'],
+						title        = title,
+						publisher    = fields['publisher'],
+						composer     = fields['composer'],
+						cue_times    = fields['cue_times'],
+						enabled      = enabled,
+						comments     = comments,
+						play_limit   = play_limit,
+						limit_action = limit_action)
 
 	# IF an outro file exists, insert it too
 	if fields['outroFile']:
@@ -337,20 +348,23 @@ def writeToDB(path, fields):
 		outroPath = getFrontendPath(outroFilename)
 
 		radioDj.upsertSongs(outroPath,
-							song_type = 0,
-							id_subcat = 19,		# Sweeper / Outro
-							id_genre  = genre_id,
-							duration  = getDurationFromFile(getLibraryPath(outroFilename)),
-							artist    = fields['artist'],
-							album     = fields['album'],
-							year      = fields['year'],
-							copyright = fields['copyright'],
-							title     = fields['title'] + ' - OUTRO',
-							publisher = fields['publisher'],
-							composer  = fields['composer'],
-							cue_times = fields['cue_times'],
-							enabled   = enabled,
-							comments  = comments)
+							song_type    = 2,		# Outros should be type 2.
+							id_subcat    = 19,		# 19 for Sweeper / Outro
+							id_genre     = genre_id,
+							duration     = getDurationFromFile(getLibraryPath(outroFilename)),
+							artist       = fields['artist'],
+							album        = fields['album'],
+							year         = fields['year'],
+							copyright    = fields['copyright'],
+							title        = title + ' - OUTRO',
+							publisher    = fields['publisher'],
+							composer     = fields['composer'],
+#							cue_times    = # don't use cue times; they would be for the main file anyway
+							cue_times    = '',
+							enabled      = enabled,
+							comments     = comments,
+							play_limit   = play_limit,
+							limit_action = limit_action)
 
 ######################################################################################
 #           Main Script

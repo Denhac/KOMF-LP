@@ -57,7 +57,7 @@ def processRecord(record):
 
 	videoFile     = envproperties.TRANSCODE_FOLDER + "/" + filename
 	indexOfDot    = videoFile.rfind('.')
-	transcodeFile = videoFile[0:indexOfDot] + ".mp3"	# Chop off [mp4,mpeg] extension and add .mp3 instead.
+	transcodeFile = videoFile[0:indexOfDot] + ".mp3"	# Chop off [mp4,mpeg,whatever] extension and add .mp3 instead.
 
 	print "Transcode file:", transcodeFile
 
@@ -102,7 +102,6 @@ responseStr = responseStr[9:-1]	# Cutting off the "callback()" part of the respo
 data = json.loads(responseStr)
 data = data['response']
 
-
 numFound = data['numFound']
 print "Total Records:", numFound
 
@@ -114,10 +113,5 @@ for record in allRecords:
 		processRecord(record)
 	except:
 		print "Something failed... continuing to next file."
-
-#	# TODO - remove this when we're ready to run for the full set
-#	temptotal += 1
-#	if temptotal == 1000:
-#		break
 
 print "Done!"

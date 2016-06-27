@@ -27,7 +27,9 @@ CREATE PROCEDURE `komf_upsert_songs` (i_path varchar(255),
                                       i_composer varchar(255),
                                       i_cue_times varchar(255),
                                       i_enabled int(1),
-                                      i_comments text
+                                      i_comments text,
+                                      i_play_limit int(11),
+                                      i_limit_action int(1)
 )
 BEGIN
 	INSERT INTO `radiodj`.`songs`
@@ -50,7 +52,9 @@ BEGIN
 	`composer`,
     `cue_times`,
     `enabled`,
-    `comments`
+    `comments`,
+    `play_limit`,
+    `limit_action`
 	)
 	VALUES
 	(i_path,
@@ -71,7 +75,9 @@ BEGIN
 	i_composer,
     i_cue_times,
     i_enabled,
-    i_comments
+    i_comments,
+    i_play_limit,
+    i_limit_action
 	)
 	ON DUPLICATE KEY UPDATE
 		`path` = i_path,
@@ -87,7 +93,9 @@ BEGIN
 	    `publisher` = i_publisher,
 		`composer` = i_composer/*,   -- DO NOT OVERWRITE CUE_TIMES; THE DJS NEED TO SAVE THESE IN RADIODJ SEPARATELY
         `cue_times` = i_cue_times    -- Also do not overwrite enabled flag or comments during an update; don't even add them here.
-									*/
+									*/,
+		`play_limit`   = i_play_limit,
+    	`limit_action` = i_limit_action
         ;
 END
 //
@@ -113,7 +121,11 @@ INSERT INTO category VALUES
 (1,'Music'),
 (2,'Spoken Word'),
 (3,'Sweepers'),
-(4,'Talk');
+(4,'Talk'),
+(5,'Station IDs'),
+(6,'Jingles'),
+(7,'Sound Effects'),
+(8,'Underwriting');
 
 INSERT INTO subcategory VALUES
 (1,4,'Educational & STEM'),
@@ -121,18 +133,21 @@ INSERT INTO subcategory VALUES
 (3,4,'Talk Radio, News, & Culture'),
 (4,2,'Poetry, Comedy, & Avant-Garde'),
 (5,1,'Music: Classical, Solo Instument, & Vocal'),
-(6,1,'Music: Reggae, Latin, & World'),
-(7,1,'Music: Folk, Country, & Bluegrass'),
+(6,1,'Music: Latin & World'),
+(7,1,'Music: Folk, Country & Bluegrass'),
 (8,1,'Music: Rock, Indie, Punk, & Post'),
 (9,1,'Music: Hip-Hop, R&B, & Jazz'),
-(10,1,'Music: Dance & Electronic'),
+(10,1,'Music: Dance/Electronic'),
 (11,1,'UNKNOWN'),
-(12,3,'Day Sweepers'),
-(13,3,'Night Sweepers'),
-(14,3,'Jingles'),
-(15,3,'Station ID'),
-(16,3,'Band Station ID'),
-(17,3,'Underwriting');
+(12,3,'KOMF Sweeper'),
+(13,3,'Song Intro'),
+(14,6,'Jingles'),
+(15,5,'Spoken Station ID'),
+(16,5,'Band Station ID'),
+(17,8,'Underwriting'),
+(18,7,'Sound Effects'),
+(19,3,'Song Outro');
+
 
 -- Set up Genres to match RadiDJ with new DOM entries
 

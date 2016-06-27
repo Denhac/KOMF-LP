@@ -1,0 +1,16 @@
+# Just started this.  Work in progress.
+# Execute as root.
+
+chkconfig httpd on
+# TODO - get the correct repo file into source control
+# yum install MariaDB--.......
+# chkconfig mariadb on
+
+
+yum install mod_wsgi
+pip install eyed3
+
+
+
+touch /var/www/log/apifunctions.log
+chown apache:apache /var/www/log/apifunctions.log
