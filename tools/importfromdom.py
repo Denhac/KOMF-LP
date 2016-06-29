@@ -366,6 +366,16 @@ def writeToDB(path, fields):
 							play_limit   = play_limit,
 							limit_action = limit_action)
 
+def constantMaintenance():
+	# Update any P:\ paths to \\<address> network path instead
+	radioDj.autoUpdatePath()
+
+	# Call the URL to ask RadioDJ to refresh its Events list
+	response = urllib.urlopen("http://192.168.22.16:8080/opt?auth=104.7lpfm&command=RefreshEvents")
+	responseText = response.read()
+	appLogger.debug("Refresh events response: " + responseText)
+
+
 ######################################################################################
 #           Main Script
 ######################################################################################
@@ -393,8 +403,9 @@ try:
 	if filesMovedToStaging > 0:
 		appLogger.info("Total files un-approved and moved back to staging: " + str(filesMovedToStaging))
 
-	# Run this update to patch the path every time the import script runs
-	radioDj.autoUpdatePath()
+	# Run any ongoing DB maintenance that we need to do
+	constantMaintenance()
+
 
 	appLogger.debug("Complete.")
 
