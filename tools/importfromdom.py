@@ -393,6 +393,9 @@ try:
 	if filesMovedToStaging > 0:
 		appLogger.info("Total files un-approved and moved back to staging: " + str(filesMovedToStaging))
 
+	# Run this update to patch the path every time the import script runs
+	radioDj.autoUpdatePath()
+
 	appLogger.debug("Complete.")
 
 finally:

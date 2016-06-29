@@ -89,3 +89,8 @@ class DenhacRadioDjDb(DenhacDb):
         self.connect()
         sql = "CALL `komf_delete_song`(%s)"
         self.executeQueryNoResult(sql, [path])
+
+    def autoUpdatePath(self):
+        self.connect()
+        sql = "UPDATE songs SET path = CONCAT('\\\\\\\\192.168.22.15\\\\library',mid(path,3)) where path like 'p:%'"
+        self.executeQueryNoResult(sql, None)
