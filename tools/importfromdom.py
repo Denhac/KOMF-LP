@@ -384,15 +384,27 @@ def writeToDB(path, fields):
 							play_limit   = play_limit,
 							limit_action = limit_action)
 
+def writeThemeblockTotalsToCsv(rows):
+	with open(envproperties.BASE_HOSTING_DIR + '/themeblock_totals.csv', 'wb') as csvfile:
+		csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+		csvwriter.writerow(["themeblock", "minutes_of_content"])
+		for row in rows:
+			csvwriter.writerow([row["themeblock"], row["minutes_of_content"]])
+
 def constantMaintenance():
-	# Update any P:\ paths to \\<address> network path instead
+	# Update any P:\ paths to \\<address> network path instead (fixes issues caused by manual uploads as opposed to automated imports)
 	radioDj.autoUpdatePath()
 
-	# Call the URL to ask RadioDJ to refresh its Events list
+	# Call the URL to ask RadioDJ to refresh its Events list (so that other users with separate RadioDJ front ends can create schedules.  This triggers the master RadioDJ instance to refresh them.)
 	response = urllib.urlopen("http://192.168.22.16:8080/opt?auth=104.7lpfm&command=RefreshEvents")
 	responseText = response.read()
 	appLogger.debug("Refresh events response: " + responseText)
 
+	# Calculate the current totals (by the minute) of all themeblocks; save to .csv
+	# TODO - render in a simple flask template for a user to view without having to download a .csv
+	rows = radioDj.getThemeblockTotals()
+	writeThemeblockTotalsToCsv(rows)
 
 ######################################################################################
 #           Main Script
@@ -405,7 +417,7 @@ try:
 
 	# Read it in, parsing it as a csv
 	with open(fileName, "rb") as audiofile:
-		memreader = csv.DictReader(audiofile, delimiter=',', quotechar='"')
+		memreader = csv.DictReader(audiofile, delimiter=',')
 
 		# Each row is a file to be downloaded, along with a few columns of metadata
 		for row in memreader:

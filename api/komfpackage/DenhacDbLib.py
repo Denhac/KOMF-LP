@@ -39,6 +39,7 @@ class DenhacDb:
         return self._lastUsedCursor
 
     def executeQueryGetAllRows(self, sql, params):
+        self.connect()
         cur = self.executeQueryGetCursor(sql, params)
         return cur.fetchall()
 
@@ -58,7 +59,6 @@ class DenhacRadioDjDb(DenhacDb):
                                             envproperties.radiodj_db_schema)
 
     def getGenreIdByName(self, name):
-        self.connect()
         sql = "select id from genre where name = %s"
         rows = self.executeQueryGetAllRows(sql, [name])
 
@@ -70,7 +70,6 @@ class DenhacRadioDjDb(DenhacDb):
         return rows[0]['id']
 
     def getSubcategoryIdByName(self, name):
-        self.connect()
         sql = "select ID from subcategory where name = %s"
         rows = self.executeQueryGetAllRows(sql, [name])
 
@@ -81,16 +80,23 @@ class DenhacRadioDjDb(DenhacDb):
         return rows[0]['ID']
 
     def upsertSongs(self, path, song_type, id_subcat, id_genre, duration, artist, album, year, copyright, title, publisher, composer, cue_times, enabled, comments, play_limit, limit_action):
-        self.connect()
         sql = "CALL `komf_upsert_songs`(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.executeQueryNoResult(sql, [path, song_type, id_subcat, id_genre, duration, artist, album, year, copyright, title, publisher, composer, cue_times, enabled, comments, play_limit, limit_action])
 
     def deleteSong(self, path):
-        self.connect()
         sql = "CALL `komf_delete_song`(%s)"
         self.executeQueryNoResult(sql, [path])
 
     def autoUpdatePath(self):
-        self.connect()
         sql = "UPDATE songs SET path = CONCAT('\\\\\\\\192.168.22.15\\\\library',mid(path,3)) where path like 'p:%'"
         self.executeQueryNoResult(sql, None)
+
+    def getThemeblockTotals(self):
+        self.connect()
+        sql = """SELECT s.name as themeblock, sum(r.duration)/60 as minutes_of_content 
+                FROM radiodj.songs r
+                JOIN subcategory s ON s.ID = r.id_subcat
+                GROUP BY r.id_subcat
+                ORDER BY minutes_of_content DESC
+                """
+        return self.executeQueryGetAllRows(sql, None)
