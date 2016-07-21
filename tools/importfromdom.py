@@ -108,7 +108,13 @@ def saveFile(row):
 	global totalNewFiles, filesMovedToLibrary, filesMovedToStaging, radioDj, uid, gid
 
 	# Transform from csv columns to local vars
-	(title, fileurl, postdate, theme, genre, artist, broadcastFlag,  indecencyFlag, outroUrl) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Production Company / Band']), str(row['Authorized for Broadcast']), str(row['Indecent Content']), str(row['DJ Outro']))
+	(title, fileurl, postdate, theme, genre, broadcastFlag,  indecencyFlag, outroUrl) = (str(row['Title']), str(row['Audio File']), str(row['Post date']), str(row['Theme']), str(row['Genre']), str(row['Authorized for Broadcast']), str(row['Indecent Content']), str(row['DJ Outro']))
+	# Handle silly exception for a column that keeps changing back and forth in the export without warning....
+	artist = ''
+	if 'Production Company / Band' in row:
+		artist = str(row['Production Company / Band'])
+	if 'Artist/Production Company/Band' in row:
+		artist = str(row['Artist/Production Company/Band'])
 
 	# Set the URL-decoded filename
 	fileName = fileurl.split('/')[-1]
@@ -197,6 +203,9 @@ def getDurationFromFile(filePath):
 	duration = proc.stdout.read()
 	return duration[:-4]	# Reduce from 7 decimal places to 3
 
+def getCueTimesFromDuration(duration):
+	return "&sta=0&xta=" + str(float(duration) - float(envproperties.FADE_OUT_SEC)) + "&end=" + duration + "&fin=" + str(envproperties.FADE_IN_SEC) + "&fou=" + str(envproperties.FADE_OUT_SEC)
+
 def saveMetadata(filePath, row):
 	global uid, gid, radioDj
 
@@ -207,7 +216,12 @@ def saveMetadata(filePath, row):
 	fields['postdate']      = str(row['Post date'])
 	fields['theme']         = str(row['Theme'])
 	fields['genre']         = str(row['Genre'])
-	fields['artist']        = str(row['Production Company / Band'])
+	# Handle silly exception for a column that keeps changing back and forth in the export without warning....
+	fields['artist']        = ''
+	if 'Production Company / Band' in row:
+		fields['artist']    = str(row['Production Company / Band'])
+	if 'Artist/Production Company/Band' in row:
+		fields['artist']    = str(row['Artist/Production Company/Band'])
 	fields['album']         = str(row['Album/Project'])
 	fields['broadcastFlag'] = str(row['Authorized for Broadcast'])
 	fields['indecencyFlag'] = str(row['Indecent Content'])
@@ -221,7 +235,9 @@ def saveMetadata(filePath, row):
 	# Calculate duration in seconds and set in metadata
 	fields['duration']      = getDurationFromFile(filePath)
 	# RadioDJ really likes having these tags... dunno why it can't calculate it itself from the duration, but whatever.
-	fields['cue_times']     = "&sta=0&xta=" + str(float(fields['duration']) - float(envproperties.FADE_OUT_SEC))+ "&end=" + fields['duration'] + "&fin=" + str(envproperties.FADE_IN_SEC) + "&fou=" + str(envproperties.FADE_OUT_SEC)
+#	fields['cue_times']     = "&sta=0&xta=" + str(float(fields['duration']) - float(envproperties.FADE_OUT_SEC))+ "&end=" + fields['duration'] + "&fin=" + str(envproperties.FADE_IN_SEC) + "&fou=" + str(envproperties.FADE_OUT_SEC)
+	fields['cue_times']     = getCueTimesFromDuration(fields['duration'] )
+
 	# Unknown fields at this time but required by RadioDJ DB
 	fields['copyright'] = "Unknown Copyright"
 	fields['publisher'] = "Unknown Publisher"
@@ -346,12 +362,13 @@ def writeToDB(path, fields):
 	if fields['outroFile']:
 		outroFilename = getFilenameFromUrl(fields['outroFile'])
 		outroPath = getFrontendPath(outroFilename)
+		duration = getDurationFromFile(getLibraryPath(outroFilename))
 
 		radioDj.upsertSongs(outroPath,
 							song_type    = 2,		# Outros should be type 2.
 							id_subcat    = 19,		# 19 for Sweeper / Outro
 							id_genre     = genre_id,
-							duration     = getDurationFromFile(getLibraryPath(outroFilename)),
+							duration     = duration,
 							artist       = fields['artist'],
 							album        = fields['album'],
 							year         = fields['year'],
@@ -360,7 +377,8 @@ def writeToDB(path, fields):
 							publisher    = fields['publisher'],
 							composer     = fields['composer'],
 #							cue_times    = # don't use cue times; they would be for the main file anyway
-							cue_times    = '',
+							# Actually... restoring cue times; RadioDJ needs them for proper schedule predicting
+							cue_times    = getCueTimesFromDuration(duration),
 							enabled      = enabled,
 							comments     = comments,
 							play_limit   = play_limit,
