@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<title>Themeblock Totals</title>
+
+<body>
+	<table border="2">
+		<tr>
+			<td><b>Theme Block</b></td><td><b>Minutes</b></td>
+			{% for row in themeblocks %}
+			<tr>
+				<td>{{ row.themeblock }}</td><td>{{ row.minutes }}</td>
+			</tr>
+			{% endfor %}
+		</tr>
+	</table>
+	<br />
+
+	<table border="2">
+		<tr>
+			<td><b>Genre</b></td><td><b>Minutes</b></td>
+			{% for row in genres %}
+			<tr>
+				<td>{{ row.genre }}</td><td>{{ row.minutes }}</td>
+			</tr>
+			{% endfor %}
+		</tr>
+	</table>
+	<br />
+
+	<table border="2">
+		<tr>
+			<td><b>Enabled</b></td><td><b>Minutes</b></td>
+			{% for row in enableds %}
+			<tr>
+				<td>{{ row.enabled }}</td><td>{{ row.minutes }}</td>
+			</tr>
+			{% endfor %}
+		</tr>
+	</table>
+</body>
+</html>

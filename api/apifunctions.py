@@ -8,6 +8,7 @@ from werkzeug import secure_filename
 
 # Our own includes
 import envproperties
+from DenhacDbLib import DenhacDb, DenhacRadioDjDb
 from DenhacJsonLib import JsonTools
 from DenhacErrorLib import *
 
@@ -215,3 +216,13 @@ def move_to_library(dirname, filename):
 	os.rename(fullpath + '.metadata', os.path.join(envproperties.UPLOAD_LIBRARY_FOLDER, filename + '.metadata'))
 
 	return JsonTools.Reply(dict(success = "True"))
+
+@app.route('/themeblocktotals/')
+def themeblocktotals():
+	radioDj = DenhacRadioDjDb()
+
+	themeblocks = radioDj.getThemeblockTotals()
+	genres      = radioDj.getGenreTotals()
+	enableds    = radioDj.getEnabledTotals()
+
+	return render_template('themeblocktotals.html', themeblocks = themeblocks, genres = genres, enableds = enableds)

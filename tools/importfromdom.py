@@ -384,14 +384,6 @@ def writeToDB(path, fields):
 							play_limit   = play_limit,
 							limit_action = limit_action)
 
-def writeThemeblockTotalsToCsv(rows):
-	with open(envproperties.BASE_HOSTING_DIR + '/themeblock_totals.csv', 'wb') as csvfile:
-		csvwriter = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
-		csvwriter.writerow(["themeblock", "minutes_of_content"])
-		for row in rows:
-			csvwriter.writerow([row["themeblock"], row["minutes_of_content"]])
-
 def constantMaintenance():
 	# Update any P:\ paths to \\<address> network path instead (fixes issues caused by manual uploads as opposed to automated imports)
 	radioDj.autoUpdatePath()
@@ -400,11 +392,6 @@ def constantMaintenance():
 	response = urllib.urlopen("http://192.168.22.16:8080/opt?auth=104.7lpfm&command=RefreshEvents")
 	responseText = response.read()
 	appLogger.debug("Refresh events response: " + responseText)
-
-	# Calculate the current totals (by the minute) of all themeblocks; save to .csv
-	# TODO - render in a simple flask template for a user to view without having to download a .csv
-	rows = radioDj.getThemeblockTotals()
-	writeThemeblockTotalsToCsv(rows)
 
 ######################################################################################
 #           Main Script

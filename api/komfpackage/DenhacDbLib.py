@@ -92,11 +92,26 @@ class DenhacRadioDjDb(DenhacDb):
         self.executeQueryNoResult(sql, None)
 
     def getThemeblockTotals(self):
-        self.connect()
-        sql = """SELECT s.name as themeblock, sum(r.duration)/60 as minutes_of_content 
+        sql = """SELECT s.name as themeblock, sum(r.duration)/60 as minutes 
                 FROM radiodj.songs r
                 JOIN subcategory s ON s.ID = r.id_subcat
                 GROUP BY r.id_subcat
-                ORDER BY minutes_of_content DESC
+                ORDER BY minutes DESC
                 """
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getGenreTotals(self):
+        sql = """SELECT g.name as genre, sum(r.duration)/60 as minutes
+                FROM radiodj.songs r
+                JOIN subcategory s ON s.ID = r.id_subcat
+                JOIN genre g ON g.id = r.id_genre
+                GROUP BY g.name
+                ORDER BY minutes DESC"""
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getEnabledTotals(self):
+        sql = """SELECT s.enabled, sum(s.duration)/60 as minutes
+                FROM radiodj.songs s
+                GROUP BY s.enabled
+                ORDER BY minutes DESC"""
         return self.executeQueryGetAllRows(sql, None)
