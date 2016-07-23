@@ -2,6 +2,7 @@ import os
 from gtts import gTTS
 import random
 import re
+import codecs
 
 # TODO FIXME should some kind of init or setup script run the apt-get install for gtts?
 
@@ -29,7 +30,7 @@ class TTSTools:
 
 		self.language = 'en'
 
-		self.text_file = 'profane_words.txt'
+		self.text_file = 'enc_profane_words.txt'
 
 		# scrub profanity from title 
 		self.artist = artist
@@ -45,7 +46,11 @@ class TTSTools:
 		will match spaced out or normal words		
 		"""
 		with open(self.text_file, 'r') as fp:
-			bad_words = fp.read().replace(' ', '').split(',')
+			encoded_words = fp.read().replace(' ', '').split(',')
+		
+		bad_words = []
+		for i in encoded_words:
+			bad_words.append(codecs.decode(i, 'rot_13'))
 		
 		artist_words = self.artist.lower().split()
 		title_words  = self.title.lower().split()
@@ -148,5 +153,5 @@ if __name__ == "__main__":
 		print result
 
 	tts1.cleanup()
-	tts2.cleanup()
+#	tts2.cleanup()
 	tts3.cleanup()
