@@ -7,7 +7,7 @@ import re
 
 # TODO FIXME we may want to extend profanity's matching text file- It had like 100 entries or less 
 
-# DEBUG = True
+DEBUG = False
 
 class TTSTools:
 
@@ -37,7 +37,7 @@ class TTSTools:
 		self.check_for_profanity()	
 	
 		self.outro_title = self.title.lstrip().replace(" ", "_")+str(" - OUTRO.mp3")
-		self.outro_path = os.getcwd()+self.outro_title
+		self.outro_path = os.getcwd()+'/'+self.outro_title
 
 	def check_for_profanity(self):
 		"""
@@ -52,7 +52,6 @@ class TTSTools:
 
 		# check for blatant profanities in artist name
 		for a in artist_words:
-			print a 
 			if a in bad_words:
 				if DEBUG:
 					print("BAD!! -> "+ a) 
@@ -60,7 +59,6 @@ class TTSTools:
 
 		# check for blatant profanities in track name
 		for t in title_words:
-			print t
 			if t in bad_words:
 				if DEBUG:
 					print("BAD!! ->"+ t) 
@@ -68,8 +66,10 @@ class TTSTools:
 
 		# check for profanities separated by spaces
 		for a in range(len(artist_words)):
-			for b in range(a,len(artist_words)):
-				temp_artist = ''.join(artist_words[a:b])
+			for b in range(a+1,len(artist_words)):
+				temp_artist = ''.join(artist_words[a:b+1])
+				if DEBUG:
+					print temp_artist
 				if temp_artist in bad_words:
 					if DEBUG:
 						print("BAD!! -> "+ temp_artist) 
@@ -77,11 +77,14 @@ class TTSTools:
 
 		# check for profanities separated by spaces
 		for t in range(len(title_words)):
-			temp_title = ''.join(title_words[0:t])
-			if temp_title in bad_words:
+			for v in range(t+1,len(title_words)):
+				temp_title = ''.join(title_words[t:v+1])
 				if DEBUG:
-					print("BAD!! -> "+ temp_artist) 
-				self.title = ' an unnamed track '
+					print temp_title
+				if temp_title in bad_words:
+					if DEBUG:
+						print("BAD!! -> "+ temp_title) 
+					self.title = ' an unnamed track '
 
 
 	def construct_tts_file(self):
@@ -105,6 +108,8 @@ class TTSTools:
 		tts=gTTS(text=outro_string, lang=self.language)
 		fp = tts.save(self.outro_title)
 
+		self.outro_path = os.getcwd()+'/'+self.outro_title
+		
 		return self.outro_path
 
 	def cleanup(self):
@@ -139,5 +144,9 @@ if __name__ == "__main__":
 	tts1.construct_tts_file()
 	tts2.construct_tts_file()
 	result = tts3.construct_tts_file()
-	print result
-	
+	if DEBUG:
+		print result
+
+	tts1.cleanup()
+	tts2.cleanup()
+	tts3.cleanup()
