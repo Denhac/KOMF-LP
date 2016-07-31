@@ -10,6 +10,8 @@ sys.path.insert(0, '/var/www/api/komfpackage')
 import envproperties
 from DenhacJsonLib import JsonTools
 from DenhacDbLib import DenhacDb, DenhacRadioDjDb
+from DenhacTTSLib import TTSTools
+
 
 # Third-party includes
 import eyed3
@@ -173,6 +175,20 @@ def saveFile(row):
 			os.rename(outroFile, outroPath)
 			os.chown(outroPath, uid, gid)
 			totalNewFiles += 1
+
+	# If there is no outro URL, create an outro 
+	else:
+		tts1 = TTSTools(title, artist)
+		# create file in current dir and get its path
+		outroFile = tts1.construct_tts_file()
+
+		# move it to the target path
+		outroPath = targetPath.rsplit('/', 1)[0] + '/' + outroFile
+		os.rename(outroFile, outroPath)
+
+		# otherwise copy outroUrl above
+		os.chown(outroPath, uid, gid)
+		totalNewFiles += 1
 
 	# Add frontendpath to row to carry it through to metadata
 	row['frontendPath'] = frontendPath
