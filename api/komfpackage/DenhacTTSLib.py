@@ -1,12 +1,11 @@
-import os
+# Python includes
+import codecs, random, re, os
+
+# Our own package includes
+import envproperties
+
+# Third-party includes
 from gtts import gTTS
-import random
-import re
-import codecs
-
-# TODO FIXME should some kind of init or setup script run the apt-get install for gtts?
-
-# TODO FIXME we may want to extend profanity's matching text file- It had like 100 entries or less 
 
 DEBUG = False
 
@@ -21,16 +20,14 @@ class TTSTools:
 
 		# use this list along with a random gen to keep things interesting
 		# FIXME perhaps migrate this to a .csv/ .dat/ DB table and read?
-		self.sentence_list=['You were listening to 1 by 2',
-				    'You just heard 1 by 2',
-				    'That last song was 1 by 2',
-				    'That track was 1 by 2',
-                                    'That was the artist 2 playing 1',
-                                    'That last song was 1 by 2']
+		self.sentence_list=['You were listening to 1, by 2, on Denver Open Media,',
+							'You just heard 1, by 2, on Denver Open Media,',
+							'That last song was 1, by 2, on Denver Open Media,',
+							'That track was 1, by 2, on Denver Open Media,',
+							'That was the artist 2, playing 1, on Denver Open Media,',
+							'That last song was 1, by 2, on Denver Open Media,']
 
 		self.language = 'en'
-
-		self.text_file = 'enc_profane_words.txt'
 
 		# scrub profanity from title 
 		self.artist = artist
@@ -45,8 +42,8 @@ class TTSTools:
 		Checks against the words in the profanity list- 
 		will match spaced out or normal words		
 		"""
-		with open(self.text_file, 'r') as fp:
-			encoded_words = fp.read().replace(' ', '').split(',')
+
+		encoded_words = envproperties.ENC_PROFANITY
 		
 		bad_words = []
 		for i in encoded_words:

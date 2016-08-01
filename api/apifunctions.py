@@ -217,7 +217,7 @@ def move_to_library(dirname, filename):
 
 	return JsonTools.Reply(dict(success = "True"))
 
-@app.route('/themeblocktotals/')
+@app.route('/themeblocktotals')
 def themeblocktotals():
 	radioDj = DenhacRadioDjDb()
 

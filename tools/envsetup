@@ -9,8 +9,22 @@ chkconfig httpd on
 
 yum install mod_wsgi
 pip install eyed3
-
+pip install gTTS
 
 
 touch /var/www/log/apifunctions.log
 chown apache:apache /var/www/log/apifunctions.log
+
+
+
+
+
+# HUGE FRIGGING THANK YOU TO https://gist.github.com/icaliman/1ee56b7f3ed5abf0dec1
+# (Installing ffmpeg and libmp3lame where they worked nicely together!)
+# But with replacing this command:
+# PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
+#  --prefix="$HOME/ffmpeg_build" \
+#  --extra-cflags="-I$HOME/ffmpeg_build/include" \
+#  --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
+#  --bindir="$HOME/bin" \
+#  --enable-libmp3lame
