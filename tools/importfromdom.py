@@ -459,8 +459,8 @@ def processRow(row):
 		writeToDB(metadata)
 	# Otherwise remove the file and its outro from the DB
 	else:
-		radioDj.deleteSong(metadata['targetPath'])
-		radioDj.deleteSong(metadata['outroPath'])
+		radioDj.deleteSong(metadata['frontendPath'])
+		radioDj.deleteSong(metadata['outroFrontendPath'])
 
 ######################################################################################
 #           Main Script
@@ -471,6 +471,10 @@ try:
 	# Save a copy of the csv from DOM.  (This contains all files of Type=Audio submitted by DOM members.)
 	fileName = downloadFile(envproperties.URL_FOR_DOM_FILELIST)
 
+
+
+
+
 	# Read it in, parsing it as a csv
 	with open(fileName, "rb") as audiofile:
 		memreader = csv.DictReader(audiofile, delimiter=',')
@@ -479,6 +483,8 @@ try:
 		for row in memreader:
 			processRow(row)
 			totalRows += 1
+
+
 
 
 
