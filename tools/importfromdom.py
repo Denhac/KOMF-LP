@@ -481,13 +481,6 @@ try:
 			totalRows += 1
 
 
-			# TODO - remove me
-			if totalRows > 20:
-				break
-
-
-
-
 
 	if totalRows > 0:
 		appLogger.debug("Total rows analyzed: " + str(totalRows))
@@ -504,8 +497,7 @@ try:
 
 
 	# Run any ongoing DB maintenance that we need to do
-# TODO - UNCOMMENT ME
-#	constantMaintenance()
+	constantMaintenance()
 
 
 
