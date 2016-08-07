@@ -176,9 +176,6 @@ def getMetadataFromCsvRow(row):
 	metadata['composer']  = "Unknown Composer"
 
 	# Set the URL-decoded filename and various necessary paths
-#	fileName = metadata['fileurl'].split('/')[-1]
-#	fileName = urllib.unquote(fileName).decode('utf8')
-#	fileName = os.path.normpath(fileName)
 	fileName = getFilenameFromUrl(metadata['fileurl'])
 
 	outroFileName = ''
@@ -187,11 +184,11 @@ def getMetadataFromCsvRow(row):
 	else:
 		outroFileName = fileName[:-4] + ' - OUTRO.mp3'
 
-	metadata['fileName']       = fileName
-	metadata['outroFileName']  = outroFileName
-	metadata['stagingPath']    = getStagingPath(fileName)
-	metadata['libraryPath']    = getLibraryPath(fileName)
-	metadata['frontendPath']   = getFrontendPath(fileName)
+	metadata['fileName']          = fileName
+	metadata['outroFileName']     = outroFileName
+	metadata['stagingPath']       = getStagingPath(fileName)
+	metadata['libraryPath']       = getLibraryPath(fileName)
+	metadata['frontendPath']      = getFrontendPath(fileName)
 
 	metadata['targetPath']        = metadata['stagingPath']
 	metadata['outroPath']         = getStagingPath(metadata['outroFileName'])
@@ -268,9 +265,9 @@ def downloadOrGenerateOutro(metadata):
 
 		tts1 = None
 		if metadata['artist']:
-			tts1 = TTSTools(metadata['title'], metadata['artist'])
+			tts1 = TTSTools(title=metadata['title'], artist=metadata['artist'])
 		else:
-			tts1 = TTSTools(metadata['title'])
+			tts1 = TTSTools(title=metadata['title'])
 
 		outroFile = tts1.construct_tts_file()
 		appLogger.debug("Outro generated.")
@@ -431,7 +428,7 @@ def constantMaintenance():
 	appLogger.debug("Refresh events response: " + responseText)
 
 ######################################################################################
-#           Primary helper function - is called row by row to process songs and outros
+#           Primary helper function - this is called row by row to process songs and outros
 ######################################################################################
 def processRow(row):
 	global radioDj
@@ -439,7 +436,7 @@ def processRow(row):
 	# Set our metadata dict from the csv row data
 	metadata = getMetadataFromCsvRow(row)
 
-	# Check if Broadcast flag has changed since we last saw this song, and move files as needed
+	# Check if Broadcast flag has changed since we last saw this song, and move files if needed
 	moveFilesIfBroadcastFlagChanged(metadata)
 
 	# Download song if we don't already have it; move it to the right directory (staging or library)
@@ -465,15 +462,12 @@ def processRow(row):
 ######################################################################################
 #           Main Script
 ######################################################################################
+createPidFile()
+
 try:
-	createPidFile()
 
 	# Save a copy of the csv from DOM.  (This contains all files of Type=Audio submitted by DOM members.)
 	fileName = downloadFile(envproperties.URL_FOR_DOM_FILELIST)
-
-
-
-
 
 	# Read it in, parsing it as a csv
 	with open(fileName, "rb") as audiofile:
@@ -483,10 +477,6 @@ try:
 		for row in memreader:
 			processRow(row)
 			totalRows += 1
-
-
-
-
 
 	if totalRows > 0:
 		appLogger.debug("Total rows analyzed: " + str(totalRows))
@@ -513,5 +503,5 @@ try:
 
 	appLogger.debug("Complete.")
 
-finally:
+except:
 	removePidFile()

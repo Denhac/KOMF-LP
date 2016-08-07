@@ -11,14 +11,17 @@ DEBUG = False
 
 class TTSTools:
 
-	def __init__(self, title=' an untitled track ', artist=' an unknown artist '):
+	def __init__(self, title=None, artist=None):
 		"""
 		Takes the title and artist name and sets member variables for the class
 		Immediately scrapes profanity from the title or artist name to prevent 
 		profanity from going out on the radio 
 		"""
 
-		# use this list along with a random gen to keep things interesting
+		if title is None:
+			raise ValueError("title must be specified")
+
+		# Use this list along with a random gen to keep things interesting
 		# FIXME perhaps migrate this to a .csv/ .dat/ DB table and read?
 		self.sentence_list=['You were listening to 1, by 2, on Denver Open Media,',
 							'You just heard 1, by 2, on Denver Open Media,',
@@ -26,6 +29,11 @@ class TTSTools:
 							'That track was 1, by 2, on Denver Open Media,',
 							'That was the artist 2, playing 1, on Denver Open Media,',
 							'That last song was 1, by 2, on Denver Open Media,']
+
+		# If we don't know the artist, don't reference them:
+		if artist is None:
+			self.sentence_list = [sentence.replace('by 2, ', '') for sentence in self.sentence_list]
+			self.sentence_list = [sentence.replace('the artist 2, playing ', '') for sentence in self.sentence_list]
 
 		self.language = 'en'
 
@@ -42,6 +50,10 @@ class TTSTools:
 		Checks against the words in the profanity list- 
 		will match spaced out or normal words		
 		"""
+
+		# Fix needed in conjunction with allowing null artists
+		if self.artist is None:
+			self.artist = ''
 
 		encoded_words = envproperties.ENC_PROFANITY
 		
