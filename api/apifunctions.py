@@ -224,5 +224,6 @@ def themeblocktotals():
 	themeblocks = radioDj.getThemeblockTotals()
 	genres      = radioDj.getGenreTotals()
 	enableds    = radioDj.getEnabledTotals()
+	unknowns    = radioDj.getUnknownSongs()
 
-	return render_template('themeblocktotals.html', themeblocks = themeblocks, genres = genres, enableds = enableds)
+	return render_template('themeblocktotals.html', themeblocks=themeblocks, genres=genres, enableds=enableds, unknowns=unknowns)

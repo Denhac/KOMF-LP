@@ -115,3 +115,7 @@ class DenhacRadioDjDb(DenhacDb):
                 GROUP BY s.enabled
                 ORDER BY minutes DESC"""
         return self.executeQueryGetAllRows(sql, None)
+
+    def getUnknownSongs(self):
+        sql = "select * from songs where id_genre = 60 or id_subcat = 11"
+        return self.executeQueryGetAllRows(sql, None)

@@ -5,6 +5,18 @@
 <body>
 	<table border="2">
 		<tr>
+			<td><b>Enabled</b></td><td><b>Minutes</b></td>
+			{% for row in enableds %}
+			<tr>
+				<td>{{ row.enabled }}</td><td>{{ row.minutes }}</td>
+			</tr>
+			{% endfor %}
+		</tr>
+	</table>
+	<br />
+
+	<table border="2">
+		<tr>
 			<td><b>Theme Block</b></td><td><b>Minutes</b></td>
 			{% for row in themeblocks %}
 			<tr>
@@ -29,13 +41,13 @@
 
 	<table border="2">
 		<tr>
-			<td><b>Enabled</b></td><td><b>Minutes</b></td>
-			{% for row in enableds %}
-			<tr>
-				<td>{{ row.enabled }}</td><td>{{ row.minutes }}</td>
-			</tr>
-			{% endfor %}
+			<td><b>Unknown Song Title</b></td><td><b>Artist</b></td><td><b>Album/Project</b></td>
 		</tr>
+		{% for row in unknowns %}
+		<tr>
+			<td>{{ row.title.decode('utf-8') }}</td><td>{{ row.artist.decode('utf-8') }}</td><td>{{ row.album.decode('utf-8') }}</td>
+		</tr>
+		{% endfor %}
 	</table>
 </body>
 </html>
