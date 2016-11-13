@@ -25,6 +25,9 @@ class DenhacDb:
     def connect(self):
         pass
 
+    def escapeString(self, str):
+        return self._connect.escape_string(str)
+
     def executeQueryNoResult(self, sql, params):
         self.connect()
         cursor = self._connect.cursor()
@@ -83,6 +86,15 @@ class DenhacRadioDjDb(DenhacDb):
         sql = "CALL `komf_upsert_songs`(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         self.executeQueryNoResult(sql, [path, song_type, id_subcat, id_genre, duration, artist, album, year, copyright, title, publisher, composer, cue_times, enabled, comments, play_limit, limit_action])
 
+    def getSongByPath(self, path):
+        sql = "SELECT * FROM songs WHERE path = %s"
+        rows = self.executeQueryGetAllRows(sql, [path])
+        return rows[0]
+
+    def setSongExtended(self, song_id, bayesian, mean, explicit):
+        sql = "CALL `komf_upsert_song_extended`(%s,%s,%s,%s)"
+        self.executeQueryNoResult(sql, [song_id, bayesian, mean, explicit])
+
     def deleteSong(self, path):
         sql = "CALL `komf_delete_song`(%s)"
         self.executeQueryNoResult(sql, [path])
@@ -119,3 +131,19 @@ class DenhacRadioDjDb(DenhacDb):
     def getUnknownSongs(self):
         sql = "select * from songs where id_genre = 60 or id_subcat = 11"
         return self.executeQueryGetAllRows(sql, None)
+
+    def getSchedules(self):
+        sql = "SELECT * FROM komf_scheduled_shows"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def upsertSchedule(self, playlist_id, project, day, time_string):
+        if playlist_id:
+            sql = "CALL komf_upsert_komf_scheduled_shows(%s, %s, %s, %s);"
+            return self.executeQueryNoResult(sql, [playlist_id, project, day, time_string])
+        else:
+            sql = "CALL komf_upsert_komf_scheduled_shows(null, %s, %s, %s);"
+            return self.executeQueryNoResult(sql, [project, day, time_string])
+
+    def deleteSchedule(self, playlist_id):
+        sql = "DELETE FROM komf_scheduled_shows WHERE playlist_id = %s"
+        return self.executeQueryNoResult(sql, [playlist_id])

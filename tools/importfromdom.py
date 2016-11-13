@@ -79,11 +79,11 @@ try:
 except KeyboardInterrupt:
 	# Just log and exit
 	appLogger.exception("Keyboard interrupt; exiting.")
+	DenhacPidfile.removePidFile()
 	exit(0)
 
 except:
 	appLogger.exception("Exception caught; aborting.")
-
 	DenhacPidfile.removePidFile()
 
 	exType, value, traceback = sys.exc_info()

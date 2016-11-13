@@ -5,6 +5,7 @@ import logging, os, sys
 from logging.handlers import RotatingFileHandler
 from flask import Flask, request, session, render_template, redirect, url_for, abort, send_from_directory, jsonify
 from werkzeug import secure_filename
+from flask_cors import CORS, cross_origin
 
 # Our own includes
 import envproperties
@@ -14,6 +15,7 @@ from DenhacErrorLib import *
 
 # Start 'er up
 app = Flask(__name__)
+CORS(app)
 
 ####################################################################################
 ###### Debug is only invoked when run from the command-line for testing:
@@ -227,3 +229,48 @@ def themeblocktotals():
 	unknowns    = radioDj.getUnknownSongs()
 
 	return render_template('themeblocktotals.html', themeblocks=themeblocks, genres=genres, enableds=enableds, unknowns=unknowns)
+
+def limitScheduleClients():
+	if request.remote_addr not in envproperties.schedule_allowed_ips:
+		app.logger.error('Blocked request from IP: ' + request.remote_addr)
+		raise KeyError
+
+@app.route('/updateschedules', methods=['GET', 'POST'])
+def updateschedules():
+
+	limitScheduleClients()
+
+	# If GET, then show the form displaying current values in the table
+	if request.method == 'GET':
+		radioDj = DenhacRadioDjDb()
+		rows = radioDj.getSchedules()
+		return render_template('updateschedules.html', rows = rows)
+
+	# Else if POST, then save the update and reload the form
+	project     = ""
+	day         = ""
+	time_string = ""
+
+	if 'project' in request.form:
+		project     = request.form['project']
+	if 'day' in request.form:
+		day         = request.form['day']
+
+#	try:
+	time_string = request.form['hour'] + ':' + request.form['minute']
+#	except KeyError:
+#		return DenhacJsonLibrary.ReplyWithError("Hour and Minute are required!")
+
+	radioDj = DenhacRadioDjDb()
+	radioDj.upsertSchedule(None, project, day, time_string)
+	rows = radioDj.getSchedules()
+	return redirect(url_for('updateschedules'))
+
+@app.route('/deleteschedule/<playlist_id>', methods=['GET'])
+def deleteschedule(playlist_id):
+
+	limitScheduleClients()
+
+	radioDj = DenhacRadioDjDb()
+	radioDj.deleteSchedule(playlist_id)
+	return redirect(url_for('updateschedules'))

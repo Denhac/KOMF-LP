@@ -108,6 +108,8 @@ class RadioSongLib:
 		metadata['postdate'] = ''
 		metadata['outroUrl'] = ''
 		metadata['album']    = ''
+		metadata['bayesian'] = 0.0
+		metadata['mean']     = 0.0
 
 		if 'Post date' in row:
 			metadata['postdate'] = str(row['Post date'])
@@ -115,6 +117,10 @@ class RadioSongLib:
 			metadata['outroUrl'] = str(row['DJ Outro'])
 		if 'Album/Project' in row:
 			metadata['album']    = str(row['Album/Project'])
+		if 'Bayesian Score' in row:
+			metadata['bayesian'] = float(row['Bayesian Score'])
+		if 'Vote!' in row:
+			metadata['mean']     = float(str(row['Vote!']).replace('%',''))
 
 		# Set year to the current year at the time of import, TODO - until we can get this value from the csv
 		metadata['year'] = datetime.datetime.now().year
@@ -280,7 +286,7 @@ class RadioSongLib:
 		if writeTag and tag is not None:
 			try:
 				tag.save()
-				appLogger.debug("Saved new ID3 tag: " + metadata['targetPath'])
+				self.appLogger.debug("Saved new ID3 tag: " + metadata['targetPath'])
 			except NotImplementedError:		# eyed3 fails to write ID3 v2.2 tags; ignore
 				pass
 
@@ -308,6 +314,7 @@ class RadioSongLib:
 		title        = metadata['title']
 		play_limit   = 0
 		limit_action = 0
+		indecent     = 0
 
 		if metadata['indecencyFlag'] == "Yes":
 			enabled      = 0
@@ -315,6 +322,7 @@ class RadioSongLib:
 			title       += " - EXPLICIT"
 			play_limit   = 1
 			limit_action = 1
+			indecent = 1
 
 		self.radioDj.upsertSongs(metadata['frontendPath'],
 							song_type    = 0,			# Regular songs are 0 (See Dave's email)
@@ -333,6 +341,9 @@ class RadioSongLib:
 							comments     = comments,
 							play_limit   = play_limit,
 							limit_action = limit_action)
+
+		row = self.radioDj.getSongByPath(metadata['frontendPath'])
+		self.radioDj.setSongExtended(row['ID'], metadata['bayesian'], metadata['mean'], indecent)
 
 		# Outro files always exist by this point now
 		self.radioDj.upsertSongs(metadata['outroFrontendPath'],
