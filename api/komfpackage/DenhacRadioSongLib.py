@@ -342,6 +342,7 @@ class RadioSongLib:
 							play_limit   = play_limit,
 							limit_action = limit_action)
 
+		# Write extended data - stuff from the audio.csv that does not have a default place in RadioDJ
 		row = self.radioDj.getSongByPath(metadata['frontendPath'])
 		self.radioDj.setSongExtended(row['ID'], metadata['bayesian'], metadata['mean'], indecent)
 

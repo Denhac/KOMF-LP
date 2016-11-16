@@ -147,3 +147,7 @@ class DenhacRadioDjDb(DenhacDb):
     def deleteSchedule(self, playlist_id):
         sql = "DELETE FROM komf_scheduled_shows WHERE playlist_id = %s"
         return self.executeQueryNoResult(sql, [playlist_id])
+
+    def getVerifiedSchedules(self):
+        sql = "SELECT * FROM komf_scheduled_show_verification"
+        return self.executeQueryGetAllRows(sql, None)

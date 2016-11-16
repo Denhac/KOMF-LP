@@ -215,16 +215,6 @@ INSERT INTO genre values
 (60,	'UNKNOWN');
 
 
-
-
-
-
-
-
-
-
-
-
 -- Create table and procedure for updating the song voting data from DOM (custom table komf_priority)
 CREATE TABLE `komf_song_extended` (
   `song_ID` int(11) NOT NULL,
@@ -245,13 +235,6 @@ CREATE TABLE `komf_scheduled_shows` (
   PRIMARY KEY (`playlist_id`),
   UNIQUE KEY `playlist_id_UNIQUE` (`playlist_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-
-
-
-
-
-
 
 
 DROP PROCEDURE IF EXISTS `komf_upsert_song_extended`;
@@ -376,9 +359,6 @@ $$
 DELIMITER ;
 
 
-
-
-
 DROP PROCEDURE IF EXISTS `komf_del_komf_scheduled_shows`;
 
 
@@ -397,4 +377,38 @@ END
 
 DELIMITER ;
 
+
+CREATE TABLE `komf_weekdays` (
+`day_int` int(11) NOT NULL,
+`day` varchar(45) DEFAULT NULL,
+PRIMARY KEY (`day_int`),
+UNIQUE KEY `ID_UNIQUE` (`day_int`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1
+;
+
+INSERT INTO `komf_weekdays` VALUES
+(0,	'Sunday'),
+(1,	'Monday'),
+(2,	'Tuesday'),
+(3,	'Wednesday'),
+(4,	'Thursday'),
+(5,	'Friday'),
+(6,	'Saturday')
+;
+
+CREATE  OR REPLACE VIEW `komf_scheduled_show_verification` AS SELECT 
+ `p`.`name` AS `ShowName`,
+ `e`.`time` AS `LoadTime`,
+ `w`.`day` AS `Day`,
+ `e`.`enabled` AS `enabled`,
+ SUBSTRING_INDEX(`s`.`path`, '\\', -(1)) AS `Filename`,
+ `pl`.`ord` AS `Part`
+ FROM
+ ((((`events` `e`
+ JOIN `playlists` `p` ON ((CONCAT('SHOW - ', `p`.`name`) = `e`.`name`)))
+ JOIN `playlists_list` `pl` ON ((`pl`.`pID` = `p`.`ID`)))
+ JOIN `songs` `s` ON ((`pl`.`sID` = `s`.`ID`)))
+ JOIN `komf_weekdays` `w` ON ((CONCAT('&', CAST(`w`.`day_int` AS CHAR CHARSET UTF8)) = `e`.`day`)))
+ ORDER BY `e`.`day` , `pl`.`ord`
+ ;
 

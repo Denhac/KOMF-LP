@@ -78,5 +78,23 @@
 	</table>
 		<input type="submit" value="Save"/>
 	</form>
+	<br/>
+
+	<b>Verified Schedules:</b>
+	<table border="2">
+		<tr>
+			<td><b>Show Name</b></td><td><b>Load Time</b></td><td><b>Day</b></td><td><b>Enabled</b></td><td><b>Filename</b></td><td><b>Part</b></td>
+		</tr>
+		{% for row in schedules %}
+		<tr>
+			<td>{{ row.ShowName }}</td>
+			<td>{{ row.LoadTime }}</td>
+			<td>{{ row.Day }}</td>
+			<td>{{ row.enabled }}</td>
+			<td>{{ row.Filename }}</td>
+			<td>{{ row.Part }}</td>
+		</tr>
+		{% endfor %}
+	</table>
 </body>
 </html>

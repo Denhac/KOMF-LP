@@ -242,9 +242,10 @@ def updateschedules():
 
 	# If GET, then show the form displaying current values in the table
 	if request.method == 'GET':
-		radioDj = DenhacRadioDjDb()
-		rows = radioDj.getSchedules()
-		return render_template('updateschedules.html', rows = rows)
+		radioDj   = DenhacRadioDjDb()
+		rows      = radioDj.getSchedules()
+		schedules = radioDj.getVerifiedSchedules()
+		return render_template('updateschedules.html', rows = rows, schedules = schedules)
 
 	# Else if POST, then save the update and reload the form
 	project     = ""
