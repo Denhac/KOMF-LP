@@ -151,3 +151,27 @@ class DenhacRadioDjDb(DenhacDb):
     def getVerifiedSchedules(self):
         sql = "SELECT * FROM komf_scheduled_show_verification"
         return self.executeQueryGetAllRows(sql, None)
+
+    def getRotationSchedules(self):
+        sql = "select a.*, b.name from komf_rotation_schedule a inner join subcategory b where b.ID = a.ThemeBlockID"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def deleteRotationSchedule(self, rotation_id):
+        sql = "DELETE FROM komf_rotation_schedule WHERE ID = %s"
+        return self.executeQueryNoResult(sql, [rotation_id])
+
+    def getThemeBlocksForUserSelection(self):
+        sql = "SELECT * FROM subcategory WHERE ID <= 10"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def addRotationSchedule(self, RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID):
+        sql = "INSERT INTO komf_rotation_schedule(RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID) values (%s,%s,%s,%s,%s)"
+        return self.executeQueryNoResult(sql, [RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID])
+
+    def updateAutoRotation(self):
+        sql = "CALL komf_update_auto_rotation()"
+        return self.executeQueryNoResult(sql, None)
+
+    def getRotationVerification(self):
+        sql = "SELECT * FROM komf_rotation_verification"
+        return self.executeQueryGetAllRows(sql, None)

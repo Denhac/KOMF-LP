@@ -275,3 +275,48 @@ def deleteschedule(playlist_id):
 	radioDj = DenhacRadioDjDb()
 	radioDj.deleteSchedule(playlist_id)
 	return redirect(url_for('updateschedules'))
+
+@app.route('/viewrotationschedule', methods=['GET'])
+def viewrotationschedule():
+
+	limitScheduleClients()
+
+	radioDj       = DenhacRadioDjDb()
+	rows          = radioDj.getRotationSchedules()
+	themeblocks   = radioDj.getThemeBlocksForUserSelection()
+	verifications = radioDj.getRotationVerification()
+	return render_template('viewrotationschedule.html', rows = rows, themeblocks = themeblocks, verifications = verifications)
+
+@app.route('/deleterotationschedule/<rotation_id>', methods=['GET'])
+def deleterotationschedule(rotation_id):
+
+	limitScheduleClients()
+
+	radioDj = DenhacRadioDjDb()
+	radioDj.deleteRotationSchedule(rotation_id)
+	radioDj.updateAutoRotation()
+	return redirect(url_for('viewrotationschedule'))
+
+@app.route('/addrotationschedule', methods=['POST'])
+def addrotationschedule():
+
+	limitScheduleClients()
+
+	rotationname   = request.form['rotationname']
+	hour           = request.form['hour']
+	minute         = request.form['minute']
+	themeblockid   = request.form['themeblockid']
+	kickofftrackid = request.form['kickofftrackid']
+	days           = str('&0' if 'Sunday'    in request.form else '')
+	days		  += str('&1' if 'Monday'    in request.form else '')
+	days		  += str('&2' if 'Tuesday'   in request.form else '')
+	days		  += str('&3' if 'Wednesday' in request.form else '')
+	days		  += str('&4' if 'Thursday'  in request.form else '')
+	days		  += str('&5' if 'Friday'    in request.form else '')
+	days		  += str('&6' if 'Saturday'  in request.form else '')
+
+	radioDj = DenhacRadioDjDb()
+	radioDj.addRotationSchedule(rotationname, hour + ':' + minute + ':00', themeblockid, days, kickofftrackid)
+	radioDj.updateAutoRotation()
+
+	return redirect(url_for('viewrotationschedule'))
