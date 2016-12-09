@@ -223,12 +223,14 @@ def move_to_library(dirname, filename):
 def themeblocktotals():
 	radioDj = DenhacRadioDjDb()
 
-	themeblocks = radioDj.getThemeblockTotals()
-	genres      = radioDj.getGenreTotals()
-	enableds    = radioDj.getEnabledTotals()
-	unknowns    = radioDj.getUnknownSongs()
+	themeblocksEnabled  = radioDj.getThemeblockEnabledTotals()
+	themeblocksDisabled = radioDj.getThemeblockDisabledTotals()
+	genresEnabled       = radioDj.getGenreEnabledTotals()
+	genresDisabled      = radioDj.getGenreDisabledTotals()
+	enableds            = radioDj.getEnabledTotals()
+	unknowns            = radioDj.getUnknownSongs()
 
-	return render_template('themeblocktotals.html', themeblocks=themeblocks, genres=genres, enableds=enableds, unknowns=unknowns)
+	return render_template('themeblocktotals.html', themeblocksEnabled = themeblocksEnabled, themeblocksDisabled = themeblocksDisabled, genresEnabled = genresEnabled, genresDisabled = genresDisabled, enableds=enableds, unknowns=unknowns)
 
 def limitScheduleClients():
 	if request.remote_addr not in envproperties.schedule_allowed_ips:

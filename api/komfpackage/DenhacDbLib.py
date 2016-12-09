@@ -112,10 +112,46 @@ class DenhacRadioDjDb(DenhacDb):
                 """
         return self.executeQueryGetAllRows(sql, None)
 
+    def getThemeblockEnabledTotals(self):
+        sql = """SELECT s.name as themeblock, sum(r.duration)/60 as minutes 
+                FROM radiodj.songs r
+                JOIN subcategory s ON s.ID = r.id_subcat AND r.enabled = 1
+                GROUP BY r.id_subcat
+                ORDER BY minutes DESC
+                """
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getThemeblockDisabledTotals(self):
+        sql = """SELECT s.name as themeblock, sum(r.duration)/60 as minutes 
+                FROM radiodj.songs r
+                JOIN subcategory s ON s.ID = r.id_subcat AND r.enabled = 0
+                GROUP BY r.id_subcat
+                ORDER BY minutes DESC
+                """
+        return self.executeQueryGetAllRows(sql, None)
+
     def getGenreTotals(self):
         sql = """SELECT g.name as genre, sum(r.duration)/60 as minutes
                 FROM radiodj.songs r
                 JOIN subcategory s ON s.ID = r.id_subcat
+                JOIN genre g ON g.id = r.id_genre
+                GROUP BY g.name
+                ORDER BY minutes DESC"""
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getGenreEnabledTotals(self):
+        sql = """SELECT g.name as genre, sum(r.duration)/60 as minutes
+                FROM radiodj.songs r
+                JOIN subcategory s ON s.ID = r.id_subcat AND r.enabled = 1
+                JOIN genre g ON g.id = r.id_genre
+                GROUP BY g.name
+                ORDER BY minutes DESC"""
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getGenreDisabledTotals(self):
+        sql = """SELECT g.name as genre, sum(r.duration)/60 as minutes
+                FROM radiodj.songs r
+                JOIN subcategory s ON s.ID = r.id_subcat AND r.enabled = 0
                 JOIN genre g ON g.id = r.id_genre
                 GROUP BY g.name
                 ORDER BY minutes DESC"""

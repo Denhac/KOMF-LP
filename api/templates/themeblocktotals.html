@@ -16,26 +16,60 @@
 	<br />
 
 	<table border="2">
-		<tr>
-			<td><b>Theme Block</b></td><td><b>Minutes</b></td>
-			{% for row in themeblocks %}
-			<tr>
-				<td>{{ row.themeblock }}</td><td>{{ row.minutes }}</td>
-			</tr>
-			{% endfor %}
-		</tr>
+		<tr><td>Enabled</td><td>Disabled</td></tr>
+		<tr><td>
+
+
+			<table border="2">
+				<tr>
+					<td><b>Theme Block</b></td><td><b>Minutes</b></td>
+					{% for row in themeblocksEnabled %}
+					<tr>
+						<td>{{ row.themeblock }}</td><td>{{ row.minutes }}</td>
+					</tr>
+					{% endfor %}
+				</tr>
+			</table>
+		</td><td>
+			<table border="2">
+				<tr>
+					<td><b>Theme Block</b></td><td><b>Minutes</b></td>
+					{% for row in themeblocksDisabled %}
+					<tr>
+						<td>{{ row.themeblock }}</td><td>{{ row.minutes }}</td>
+					</tr>
+					{% endfor %}
+				</tr>
+			</table>
+		</td></tr>
 	</table>
 	<br />
 
 	<table border="2">
-		<tr>
-			<td><b>Genre</b></td><td><b>Minutes</b></td>
-			{% for row in genres %}
-			<tr>
-				<td>{{ row.genre }}</td><td>{{ row.minutes }}</td>
-			</tr>
-			{% endfor %}
-		</tr>
+		<tr><td>Enabled</td><td>Disabled</td></tr>
+		<tr><td>
+			<table border="2">
+				<tr>
+					<td><b>Genre</b></td><td><b>Minutes</b></td>
+					{% for row in genresEnabled %}
+					<tr>
+						<td>{{ row.genre }}</td><td>{{ row.minutes }}</td>
+					</tr>
+					{% endfor %}
+				</tr>
+			</table>
+		</td><td>
+			<table border="2">
+				<tr>
+					<td><b>Genre</b></td><td><b>Minutes</b></td>
+					{% for row in genresDisabled %}
+					<tr>
+						<td>{{ row.genre }}</td><td>{{ row.minutes }}</td>
+					</tr>
+					{% endfor %}
+				</tr>
+			</table>
+		</td></tr>
 	</table>
 	<br />
 
