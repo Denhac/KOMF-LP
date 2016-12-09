@@ -165,8 +165,12 @@ class DenhacRadioDjDb(DenhacDb):
         return self.executeQueryGetAllRows(sql, None)
 
     def addRotationSchedule(self, RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID):
-        sql = "INSERT INTO komf_rotation_schedule(RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID) values (%s,%s,%s,%s,%s)"
-        return self.executeQueryNoResult(sql, [RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID])
+        if KickoffTrackID:
+            sql = "INSERT INTO komf_rotation_schedule(RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID) values (%s,%s,%s,%s,%s)"
+            return self.executeQueryNoResult(sql, [RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID])
+        else:
+            sql = "INSERT INTO komf_rotation_schedule(RotationName, StartTime, ThemeBlockID, Days) values (%s,%s,%s,%s)"
+            return self.executeQueryNoResult(sql, [RotationName, StartTime, ThemeBlockID, Days])
 
     def updateAutoRotation(self):
         sql = "CALL komf_update_auto_rotation()"
