@@ -47,5 +47,5 @@ smtp_password       = 'emailpass'
 
 ########################################
 # Used by apifunctions, /updateschedules and /deleteschedules services, to restrict access
-schedule_allowed_ips = ['192.168.1.10']
+schedule_allowed_ips = ['127.0.0.1','192.168.1.10']
 #                      The test machine
