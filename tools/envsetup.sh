@@ -87,6 +87,7 @@ git clone https://github.com/Denhac/KOMF-LP ~/KOMF-LP
 
 sudo cp -r /root/KOMF-LP/api/ /var/www/.
 sudo cp    /root/KOMF-LP/configs/etc/httpd/conf.d/komfapi.conf /etc/httpd/conf.d/.
+sudo cp    /root/KOMF-LP/configs/etc/httpd/conf.d/komfpublic.conf /etc/httpd/conf.d/.
 sudo mv    /var/www/api/komfpackage/envproperties_example.py /var/www/api/komfpackage/envproperties.py
 
 

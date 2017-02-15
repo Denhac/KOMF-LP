@@ -95,3 +95,10 @@ def logtester():
 ####################################################################################
 #     SERVICE DEFINITIONS
 ####################################################################################
+
+@app.route('/viewscheduledshowverification', methods=['GET'])
+def viewscheduledshowverification():
+	radioDj = DenhacRadioDjDb()
+	rows    = radioDj.getScheduledShowVerification()
+
+	return render_template('viewscheduledshowverification.html', rows = rows)

@@ -215,3 +215,7 @@ class DenhacRadioDjDb(DenhacDb):
     def getRotationVerification(self):
         sql = "SELECT * FROM komf_rotation_verification"
         return self.executeQueryGetAllRows(sql, None)
+
+    def getScheduledShowVerification(self):
+        sql = "select * from komf_scheduled_show_verification"
+        return self.executeQueryGetAllRows(sql, None)
