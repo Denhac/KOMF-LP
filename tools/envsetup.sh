@@ -1,16 +1,20 @@
 # Just started this.  Work in progress.
 # Execute as root.
 
-yum -y install httpd epel-release python-pip python-ldap MySQL-python mod_wsgi git mariadb-server wget
+yum -y install httpd epel-release python-pip python-ldap MySQL-python mod_wsgi git mariadb-server wget ntp ntpdate ntp-doc
 yum -y install python-pip  # No idea why it has to be separate, but it won't install with the list above
-yum -y update
+#yum -y update
 
 yes | pip install --upgrade pip
 yes | pip install flask flask-cors PyMySQL eyed3 gTTS
 
-mkdir /var/www/log
+
+mkdir /var/www/{files,log}
+chown -R apache:apache /var/www/{files,log}
+
 touch /var/www/log/apifunctions.log
-chown apache:apache /var/www/log/apifunctions.log
+chmod 777 /var/www/log
+chmod 666 /var/www/log/apifunctions.log
 
 #adduser apiuser
 ## AS ROOT:
@@ -18,23 +22,23 @@ chown apache:apache /var/www/log/apifunctions.log
 ##   Add this line:
 ##     apiuser    ALL=(ALL:ALL) ALL
 
-systemctl enable mariadb
-systemctl start mariadb
+systemctl enable mariadb httpd ntpd
+systemctl start  mariadb httpd ntpd
 
-systemctl enable httpd
-systemctl start httpd
+systemctl disable firewalld
+systemctl stop firewalld
 
 
 cd /root
 git clone https://github.com/Denhac/KOMF-LP
 
-cp -r ./KOMF-LP/api/ /var/www/.
-cp    ./KOMF-LP/configs/etc/httpd/conf.d/komfapi.conf /etc/httpd/conf.d/.
-
+cp -r /root/KOMF-LP/api/ /var/www/.
+cp    /root/KOMF-LP/configs/etc/httpd/conf.d/komfapi.conf /etc/httpd/conf.d/.
+mv    /var/www/api/komfpackage/envproperties_example.py /var/www/api/komfpackage/envproperties.py
 
 cd /root/KOMF-LP/sql
 mysql < denhac_radiodj_setup_1_dbandusers.sql
-mysql < denhac_radiodj_setup_2_radiodjschema_sps_and_data.sql
+mysql radiodj < denhac_radiodj_setup_2_radiodjschema_sps_and_data.sql
 
 
 apachectl restart

@@ -1,9 +1,9 @@
 ########################################
 # Properties for the DB connection for RadioDJ
 radiodj_db_server 	 = '127.0.0.1'
-radiodj_db_user 	 = 'user'
-radiodj_db_password  = 'pass'
-radiodj_db_schema	 = 'schema'
+radiodj_db_user 	 = 'radiodj'
+radiodj_db_password  = 'password'
+radiodj_db_schema	 = 'radiodj'
 
 ########################################
 # File hosting services base directories
