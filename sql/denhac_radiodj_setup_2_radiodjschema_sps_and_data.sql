@@ -337,12 +337,6 @@ CREATE TABLE `komf_rotation_schedule` (
 
 -- TRIGGERS MANUALLY REMOVED
 
-
-/*!50003 SET sql_mode              = @saved_sql_mode */ ;
-/*!50003 SET character_set_client  = @saved_cs_client */ ;
-/*!50003 SET character_set_results = @saved_cs_results */ ;
-/*!50003 SET collation_connection  = @saved_col_connection */ ;
-
 --
 -- Temporary view structure for view `komf_rotation_verification`
 --
