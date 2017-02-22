@@ -4,11 +4,11 @@
 # Feb 2017
 #
 # Designed to copy to a newly-installed CentOS server (by itself), then:
-# > chmod +x envsetup.sh
-# > ./envsetup.sh
+# > chmod +x install.sh
+# > ./install.sh
 #
 # To prompt after any errors on important steps, run like this:
-# > ./envsetup.sh debug
+# > ./install.sh debug
 DEBUG=$1
 
 # To run this script as another user, you still need sudo privileges.
