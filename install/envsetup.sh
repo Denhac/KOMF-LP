@@ -11,6 +11,12 @@
 # > ./envsetup.sh debug
 DEBUG=$1
 
+# To run this script as another user, you still need sudo privileges.
+# Run these commands as root to give a user sudo:
+# > adduser USERNAME
+# > passwd USERNAME
+# > usermod -aG wheel USERNAME
+
 # Function that displays a message and prompts before continuing, so the user can see errors
 function checkresponse(){
 	echo "***WARNING: $*"
@@ -138,11 +144,17 @@ fi
 ########################################################
 
 echo 'Creating database schema...'
-mysql < ~/KOMF-LP/sql/denhac_radiodj_setup_1_dbandusers.sql
-checkresponse 'DB Core Setup Failed.'
 
-mysql radiodj < ~/KOMF-LP/sql/denhac_radiodj_setup_2_radiodjschema_sps_and_data.sql
-checkresponse 'DB RadioDJ Schema Setup Failed.'
+RESULT=`mysqlshow radiodj | grep -v Wildcard | grep -o radiodj`
+if [ "$RESULT" == "radiodj" ]; then
+	checkresponse 'Database radiodj already exists; skipping database activities...'
+else
+	mysql < ~/KOMF-LP/sql/denhac_radiodj_setup_1_dbandusers.sql
+	checkresponse 'DB Core Setup Failed.'
+
+	mysql radiodj < ~/KOMF-LP/sql/denhac_radiodj_setup_2_radiodjschema_sps_and_data.sql
+	checkresponse 'DB RadioDJ Schema Setup Failed.'
+fi
 
 ########################################################
 
