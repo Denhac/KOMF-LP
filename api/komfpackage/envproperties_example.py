@@ -6,12 +6,17 @@ radiodj_db_password  = 'password'
 radiodj_db_schema	 = 'radiodj'
 
 ########################################
+# Session-management variables
+session_key         = 'sessionkey'
+
+########################################
 # File hosting services base directories
 BASE_HOSTING_DIR      = '/files'
 UPLOAD_PUBLIC_FOLDER  = '/files/public_upload'
 UPLOAD_STAGING_FOLDER = '/files/staging'
 UPLOAD_LIBRARY_FOLDER = '/files/library'
 
+# List only the file types that are to be allowed for upload
 ALLOWED_EXTENSIONS = set(['mp3'])
 
 # Mapped folder on the client PC
@@ -49,3 +54,8 @@ smtp_password       = 'emailpass'
 # Used by apifunctions, /updateschedules and /deleteschedules services, to restrict access
 schedule_allowed_ips = ['127.0.0.1','192.168.1.10']
 #                      The test machine
+# Replacing the IP list with this instead:
+komf_password_hash = 'pbkdf2:sha1:1000$bnMTi7qI$5f215a8d1c82bc2482ce45f66e2725114683755d'
+
+# Session-management variables
+session_key         = 'sessionkey'

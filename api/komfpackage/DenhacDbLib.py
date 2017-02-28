@@ -219,3 +219,7 @@ class DenhacRadioDjDb(DenhacDb):
     def getScheduledShowVerification(self):
         sql = "select * from komf_scheduled_show_verification"
         return self.executeQueryGetAllRows(sql, None)
+
+    def getKomfTrackSummary(self):
+        sql = "select ks.*, s.path from komf_track_summary ks, songs s where s.ID = ks.songID"
+        return self.executeQueryGetAllRows(sql, None)

@@ -7,4 +7,5 @@ if [ $# -ne 1 ]; then
 	exit 1
 fi
 
-mysqldump --add-drop-database --add-drop-table --routines --databases $1 > $1_$DATE.sql
+echo 'Use DB root pw here:'
+mysqldump -u root -p --add-drop-database --add-drop-table --routines --databases $1 > $1_$DATE.sql

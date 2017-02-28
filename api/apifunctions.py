@@ -4,8 +4,8 @@ import logging, os, sys
 # Flask and other third-party includes
 from logging.handlers import RotatingFileHandler
 from flask import Flask, request, session, render_template, redirect, url_for, abort, send_from_directory, jsonify
-from werkzeug import secure_filename
-from flask_cors import CORS, cross_origin
+from werkzeug import secure_filename, check_password_hash
+#from flask_cors import CORS, cross_origin
 
 # Our own includes
 import envproperties
@@ -15,12 +15,16 @@ from DenhacErrorLib import *
 
 # Start 'er up
 app = Flask(__name__)
-CORS(app)
+#CORS(app)
 
 ####################################################################################
 ###### Debug is only invoked when run from the command-line for testing:
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=8080, debug=True)
+
+####################################################################################
+###### Used to encrypt the session cookies
+app.secret_key = envproperties.session_key
 
 ####################################################################################
 ##### Application config values
@@ -97,6 +101,54 @@ def logtester():
 ####################################################################################
 #     SERVICE DEFINITIONS
 ####################################################################################
+
+# The empty endpoint shows you the login page
+@app.route('/')
+def main():
+	return render_template('login.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+	username = None
+	password = None
+
+	try:
+		if request.method == 'POST':
+			# Will throw KeyError if vars not present
+#			username = request.form['username']
+			password = request.form['password']
+
+#		if not username or not password:			# Detect the condition if a var is there but empty
+		if not password:
+			raise KeyError
+
+		# Check the input password against the configured hash value
+		if not check_password_hash(envproperties.komf_password_hash, password):
+			raise KeyError
+
+	except KeyError:
+		raise BadRequestException(error="Valid Username and Password are required!")
+
+	session['logged_in'] = True
+	session['hash_pw']   = envproperties.komf_password_hash
+
+	return redirect(url_for('internalpages'))
+
+@app.route('/internalpages', methods=['GET'])
+def internalpages():
+	if not checkPassword():
+		return redirect(url_for('main'))
+	return render_template('internalpages.html')
+
+@app.route('/logout', methods=['GET'])
+def logout():
+	if 'logged_in' in session:
+		del session['logged_in']
+
+	if 'hash_pw' in session:
+		del session['hash_pw']
+
+	return redirect(url_for('main'))
 
 # Helper fn to avoid lots of repeated code
 def validatepath(dir, filepath):
@@ -232,15 +284,23 @@ def themeblocktotals():
 
 	return render_template('themeblocktotals.html', themeblocksEnabled = themeblocksEnabled, themeblocksDisabled = themeblocksDisabled, genresEnabled = genresEnabled, genresDisabled = genresDisabled, enableds=enableds, unknowns=unknowns)
 
-def limitScheduleClients():
-	if request.remote_addr not in envproperties.schedule_allowed_ips:
-		app.logger.error('Blocked request from IP: ' + request.remote_addr)
-		raise KeyError
+def checkPassword():
+
+	if 'logged_in' not in session or not session['logged_in']:
+		app.logger.error('First is true')
+		return False
+
+	if 'hash_pw'   not in session or session['hash_pw'] != envproperties.komf_password_hash:
+		app.logger.error('Second is true')
+		return False
+
+	return True
 
 @app.route('/updateschedules', methods=['GET', 'POST'])
 def updateschedules():
 
-	limitScheduleClients()
+	if not checkPassword():
+		return redirect(url_for('main'))
 
 	# If GET, then show the form displaying current values in the table
 	if request.method == 'GET':
@@ -271,8 +331,8 @@ def updateschedules():
 
 @app.route('/deleteschedule/<playlist_id>', methods=['GET'])
 def deleteschedule(playlist_id):
-
-	limitScheduleClients()
+	if not checkPassword():
+		return redirect(url_for('main'))
 
 	radioDj = DenhacRadioDjDb()
 	radioDj.deleteSchedule(playlist_id)
@@ -280,8 +340,8 @@ def deleteschedule(playlist_id):
 
 @app.route('/viewrotationschedule', methods=['GET'])
 def viewrotationschedule():
-
-	limitScheduleClients()
+	if not checkPassword():
+		return redirect(url_for('main'))
 
 	radioDj       = DenhacRadioDjDb()
 	rows          = radioDj.getRotationSchedules()
@@ -291,8 +351,8 @@ def viewrotationschedule():
 
 @app.route('/deleterotationschedule/<rotation_id>', methods=['GET'])
 def deleterotationschedule(rotation_id):
-
-	limitScheduleClients()
+	if not checkPassword():
+		return redirect(url_for('main'))
 
 	radioDj = DenhacRadioDjDb()
 	radioDj.deleteRotationSchedule(rotation_id)
@@ -301,8 +361,8 @@ def deleterotationschedule(rotation_id):
 
 @app.route('/addrotationschedule', methods=['POST'])
 def addrotationschedule():
-
-	limitScheduleClients()
+	if not checkPassword():
+		return redirect(url_for('main'))
 
 	rotationname   = request.form['rotationname']
 	hour           = request.form['hour']
@@ -322,3 +382,12 @@ def addrotationschedule():
 	radioDj.updateAutoRotation()
 
 	return redirect(url_for('viewrotationschedule'))
+
+@app.route('/manageinternalcontent', methods=['GET'])
+def manageinternalcontent():
+	if not checkPassword():
+		return redirect(url_for('main'))
+
+	radioDj = DenhacRadioDjDb()
+	tracks  = radioDj.getKomfTrackSummary()
+	return render_template('manageinternalcontent.html', tracks = tracks)
