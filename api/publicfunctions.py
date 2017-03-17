@@ -102,3 +102,10 @@ def viewscheduledshowverification():
 	rows    = radioDj.getScheduledShowVerification()
 
 	return render_template('viewscheduledshowverification.html', rows = rows)
+
+@app.route('/rotationschedule', methods=['GET'])
+def rotationschedule():
+	radioDj       = DenhacRadioDjDb()
+	rows          = radioDj.getRotationSchedules()
+
+	return JsonTools.Reply(dict(schedules = rows))

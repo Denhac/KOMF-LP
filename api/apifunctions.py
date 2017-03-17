@@ -1,5 +1,6 @@
 # Python includes
-import logging, os, sys
+import logging, os, sys, urllib2
+from threading import Thread
 
 # Flask and other third-party includes
 from logging.handlers import RotatingFileHandler
@@ -12,6 +13,7 @@ import envproperties
 from DenhacDbLib import DenhacDb, DenhacRadioDjDb
 from DenhacJsonLib import JsonTools
 from DenhacErrorLib import *
+from DenhacEmailLibrary import *
 
 # Start 'er up
 app = Flask(__name__)
@@ -31,9 +33,6 @@ app.secret_key = envproperties.session_key
 ####################################################################################
 app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024   # 1GB
 
-####################################################################################
-###### Key that is used to encrypt the session cookies (if we store things in session[])
-#app.secret_key = envproperties.session_key
 ####################################################################################
 ###### Setting up the formatter for the log file
 ####################################################################################
@@ -347,6 +346,7 @@ def viewrotationschedule():
 	rows          = radioDj.getRotationSchedules()
 	themeblocks   = radioDj.getThemeBlocksForUserSelection()
 	verifications = radioDj.getRotationVerification()
+
 	return render_template('viewrotationschedule.html', rows = rows, themeblocks = themeblocks, verifications = verifications)
 
 @app.route('/deleterotationschedule/<rotation_id>', methods=['GET'])
@@ -391,3 +391,65 @@ def manageinternalcontent():
 	radioDj = DenhacRadioDjDb()
 	tracks  = radioDj.getKomfTrackSummary()
 	return render_template('manageinternalcontent.html', tracks = tracks)
+
+@app.route('/nowplaying', methods=['POST'])
+def nowplaying():
+	# Check for required fields
+	if 'track' not in request.form or 'artist' not in request.form or 'album' not in request.form or 'playlistServiceToken' not in request.form:
+		raise BadRequestException(error="track, artist, album, and playlistServiceToken are required POST vars")
+
+	if request.form['playlistServiceToken'] != 'eggsmayhem':
+		raise BadRequestException(error="Invalid playlistServiceToken")
+
+	# Ignore notifications for Outros
+	if request.form['track'].endswith('- OUTRO'):
+		return JsonTools.Reply(dict(msg = "Success"))
+
+	# Start one background worker for each target that wants to receive a notification
+	# (This way RadioDJ doesn't have to wait on a response if any remote system has any issues; it just rotates and continues.)
+	thread = Thread(target=background_call_radiorethink, args=[request.form])
+	thread.start()
+
+	## thread2 = Thread(target=background_call_omf_website.... etc)
+	## thread2.start()
+	## etc
+
+	return JsonTools.Reply(dict(msg = "Success"))
+
+def background_call_radiorethink(vars):
+	url  = "http://radiorethink.com/playlistService/incoming.cfm?stationCode=KOMF"
+
+	if 'playlistServiceToken' in vars:
+		url += "&playlistServiceToken=v3hamjBtzwYcgJ7u"
+	if 'artist' in vars:
+		url += "&artist=" + urllib2.quote(vars['artist'])
+	if 'track' in vars:
+		url += "&track=" + urllib2.quote(vars['track'])
+	if 'album' in vars:
+		url += "&album=" + urllib2.quote(vars['album'])
+	if 'showID' in vars:
+		url += "&showID=" + urllib2.quote(vars['showID'])
+	if 'songID' in vars:
+		url += "&songID=" + urllib2.quote(vars['songID'])
+#	if 'playlistID' in vars:
+#		url += "&playlistID="
+#	if 'trackTimestamp' in vars:
+#		url += "&trackTimestamp="
+	if 'showName' in vars:
+		url += "&showName=" + urllib2.quote(vars['showName'])
+#	if 'showHost' in vars:
+#		url += "&showHost="
+
+	try:
+		app.logger.error("Calling RadioRethink URL: " + url)
+		urllib2.urlopen(url = url, data = None, timeout = 60)
+
+	except:
+		exType, value, traceback = sys.exc_info()
+		app.logger.error(str(value))
+		DenhacEmail.SendEmail(fromAddr = 'autobot@denhac.org',
+							  toAddr   = ['anthony.stonaker@gmail.com'],
+							  subject  = 'Callout to RadioRethink failed',
+							  body     = 'Type:  ' + str(exType) + '\n' +
+							  			 'Value: ' + str(value) + '\n' +
+							  			 'Trace: ' + str(traceback))

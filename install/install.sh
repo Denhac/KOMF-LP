@@ -46,7 +46,7 @@ checkresponse 'Create user failed.'
 ########################################################
 
 echo 'Installing/Updating packages...'
-sudo yum -y install httpd epel-release python-pip python-ldap MySQL-python mod_wsgi git mariadb-server wget ntp ntpdate ntp-doc
+sudo yum -y install httpd epel-release python-pip python-ldap MySQL-python mod_wsgi git mariadb-server wget ntp ntpdate ntp-doc iotop
 sudo yum -y install python-pip  # No idea why it has to be separate, but it won't install with the list above
 sudo yum -y update
 
