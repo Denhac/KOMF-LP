@@ -23,6 +23,13 @@ try:
 except:
 	exType, value, traceback = sys.exc_info()
 	appLogger.error(str(value))
+
+	DenhacEmail.SendEmail(fromAddr = 'autobot@denhac.org',
+						  toAddr   = ['anthony.stonaker@gmail.com'],
+						  subject  = 'DOM Import Script Failed',
+						  body     = 'Type:  ' + str(exType) + '\n' +
+						  			 'Value: ' + str(value) + '\n' +
+						  			 'Trace: ' + str(traceback))
 	exit(0)
 
 ######################################################################################
