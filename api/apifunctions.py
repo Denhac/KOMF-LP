@@ -417,7 +417,8 @@ def nowplaying():
 	return JsonTools.Reply(dict(msg = "Success"))
 
 def background_call_radiorethink(vars):
-	url  = "http://radiorethink.com/playlistService/incoming.cfm?stationCode=KOMF"
+	# TODO - move this to envproperties.py config file
+	url = "https://radiorethink.org/playlistService/incoming.cfm?stationCode=KOMF"
 
 	if 'playlistServiceToken' in vars:
 		url += "&playlistServiceToken=v3hamjBtzwYcgJ7u"
