@@ -88,12 +88,8 @@ else
 	cd ~/ffmpeg_sources
 	git clone --depth 1 git://source.ffmpeg.org/ffmpeg
 	cd ffmpeg
-	PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure \
-	  --prefix="$HOME/ffmpeg_build" \
-	  --extra-cflags="-I$HOME/ffmpeg_build/include" \
-	  --extra-ldflags="-L$HOME/ffmpeg_build/lib" \
-	  --bindir="$HOME/bin" \
-	  --enable-libmp3lame
+	PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig"
+	./configure --prefix="$HOME/ffmpeg_build" --extra-cflags="-I$HOME/ffmpeg_build/include" --extra-ldflags="-L$HOME/ffmpeg_build/lib" --bindir="$HOME/bin" --enable-libmp3lame
 	make
 	make install
 	make distclean
