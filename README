@@ -24,6 +24,9 @@ SETTING UP A TEST SERVER
     > passwd USERNAME
     > usermod -aG wheel USERNAME
 
+Install ifconfig & dos2unix:
+    sudo yum -y install net-tools dos2unix
+
 9. From this repo, use SCP to copy the script install/install.sh to the test server, change permissions, and run it!
     > chmod +x install.sh
     > sudo ./install.sh

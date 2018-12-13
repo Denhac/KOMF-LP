@@ -1,9 +1,9 @@
 ########################################
 # Properties for the DB connection for RadioDJ
-radiodj_db_server 	 = '127.0.0.1'
-radiodj_db_user 	 = 'radiodj'
+radiodj_db_server      = '127.0.0.1'
+radiodj_db_user      = 'radiodj'
 radiodj_db_password  = 'password'
-radiodj_db_schema	 = 'radiodj'
+radiodj_db_schema     = 'radiodj'
 
 ########################################
 # Session-management variables
@@ -46,16 +46,17 @@ ENC_PROFANITY         = 'nahf, nefr, nefrubyr, nff, nff-ung, nff-wnoore , nff-cv
 
 # These properties are loaded by DenhacEmailLibrary.py:
 smtp_server         = 'smtp.gmail.com'
-smtp_port			= 465
+smtp_port            = 465
 smtp_user           = 'emailuser'
 smtp_password       = 'emailpass'
 
 ########################################
 # Used by apifunctions, /updateschedules and /deleteschedules services, to restrict access
-schedule_allowed_ips = ['127.0.0.1','192.168.1.10']
+#schedule_allowed_ips = ['127.0.0.1','192.168.1.10']
 #                      The test machine
 # Replacing the IP list with this instead:
 komf_password_hash = 'pbkdf2:sha1:1000$bnMTi7qI$5f215a8d1c82bc2482ce45f66e2725114683755d'
+# In test, this has is 'password'
 
 # Session-management variables
 session_key         = 'sessionkey'

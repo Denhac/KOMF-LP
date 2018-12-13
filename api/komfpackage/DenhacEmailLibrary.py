@@ -9,33 +9,33 @@ import envproperties
 
 class DenhacEmail:
 
-	def __init__(self):
-		pass
+    def __init__(self):
+        pass
 
-	# TODO - Enhance to send an attachment
-	def SendEmail(fromAddr, toAddr, subject, body):
+    # TODO - Enhance to send an attachment
+    def SendEmail(fromAddr, toAddr, subject, body):
 
-		# Ensure TO is a list...
-		assert isinstance(toAddr, list)
+        # Ensure TO is a list...
+        assert isinstance(toAddr, list)
 
-		# Denhac logic - if on the dev server; append and prepend to Subject line
-		if socket.gethostname() == 'devAPI.denhac.local' or socket.gethostname() == 'localhost':
-			subject = '*TEST*TEST* ' + subject + ' *TEST*TEST*'
+        # Denhac logic - if on the dev server; append and prepend to Subject line
+        if socket.gethostname() == 'devAPI.denhac.local' or socket.gethostname() == 'localhost':
+            subject = '*TEST*TEST* ' + subject + ' *TEST*TEST*'
 
-		# Build the message
-		msg = MIMEMultipart()
-		msg['From'] = fromAddr
-		msg['To'] = COMMASPACE.join(toAddr)
-		msg['Date'] = formatdate(localtime=True)
-		msg['Subject'] = subject
+        # Build the message
+        msg = MIMEMultipart()
+        msg['From'] = fromAddr
+        msg['To'] = COMMASPACE.join(toAddr)
+        msg['Date'] = formatdate(localtime=True)
+        msg['Subject'] = subject
 
-		msg.attach(MIMEText(body))
+        msg.attach(MIMEText(body))
 
-		# Login & Send the email
-		smtp = smtplib.SMTP_SSL(envproperties.smtp_server, envproperties.smtp_port)
-		smtp.login(envproperties.smtp_user, envproperties.smtp_password)
-		smtp.sendmail(fromAddr, toAddr, msg.as_string())
-		smtp.close()
+        # Login & Send the email
+        smtp = smtplib.SMTP_SSL(envproperties.smtp_server, envproperties.smtp_port)
+        smtp.login(envproperties.smtp_user, envproperties.smtp_password)
+        smtp.sendmail(fromAddr, toAddr, msg.as_string())
+        smtp.close()
 
-	# Python 2.x way of declaring static functions
-	SendEmail = staticmethod(SendEmail)
+    # Python 2.x way of declaring static functions
+    SendEmail = staticmethod(SendEmail)

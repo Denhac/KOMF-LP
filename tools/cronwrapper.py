@@ -34,11 +34,11 @@ radioDj = DenhacRadioDjDb()
 ######################################################################################
 # Be certain that only one copy of this script can run at a time
 try:
-	DenhacPidfile.createPidFile()
+    DenhacPidfile.createPidFile()
 except:
-	exType, value, traceback = sys.exc_info()
-	appLogger.error(str(value))
-	exit(0)
+    exType, value, traceback = sys.exc_info()
+    appLogger.error(str(value))
+    exit(0)
 
 ######################################################################################
 #           Main Script starts execution here
@@ -48,22 +48,22 @@ appLogger.debug("Starting up, PID: " + str(DenhacPidfile.pid))
 appLogger.debug("Running input script: " + sys.argv[1])
 
 try:
-	# Retrieve the SQL that was passed, wash it, and throw it at the DB
-	radioDj.connect()
-	sql = radioDj.escapeString(sys.argv[1])
-	radioDj.executeQueryNoResult(sql, None)
+    # Retrieve the SQL that was passed, wash it, and throw it at the DB
+    radioDj.connect()
+    sql = radioDj.escapeString(sys.argv[1])
+    radioDj.executeQueryNoResult(sql, None)
 
-	DenhacPidfile.removePidFile()
-	appLogger.debug("Complete.")
+    DenhacPidfile.removePidFile()
+    appLogger.debug("Complete.")
 
 except:
-	appLogger.exception("Exception caught; aborting.")
-	DenhacPidfile.removePidFile()
+    appLogger.exception("Exception caught; aborting.")
+    DenhacPidfile.removePidFile()
 
-	exType, value, traceback = sys.exc_info()
-	DenhacEmail.SendEmail(fromAddr = 'autobot@denhac.org',
-						  toAddr   = ['anthony.stonaker@gmail.com'],
-						  subject  = 'Cron Wrapper Script Failed',
-						  body     = 'Type:  ' + str(exType) + '\n' +
-						  			 'Value: ' + str(value) + '\n' +
-						  			 'Trace: ' + str(traceback))
+    exType, value, traceback = sys.exc_info()
+    DenhacEmail.SendEmail(fromAddr = 'autobot@denhac.org',
+                          toAddr   = ['anthony.stonaker@gmail.com'],
+                          subject  = 'Cron Wrapper Script Failed',
+                          body     = 'Type:  ' + str(exType) + '\n' +
+                                       'Value: ' + str(value) + '\n' +
+                                       'Trace: ' + str(traceback))
