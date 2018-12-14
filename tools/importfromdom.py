@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 # Python includes
 import csv, sys
@@ -58,6 +59,16 @@ def processRow(row):
     # Insert/update, or remove from the RadioDJ DB, depending on broadcast flag
     songLib.handleBroadcastFlag(metadata)
 
+
+def log_and_send_error(subject):
+    appLogger.exception(subject)
+    e, v, t = sys.exc_info()
+    msg_body = 'Type:  ' + str(e) + '\n' + 'Value: ' + str(v) + '\n' + 'Row: ' + str(row)
+    DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
+                          toAddr=envproperties.ERROR_TO_EMAIL_LIST,
+                          subject=subject,
+                          body=msg_body)
+
 ######################################################################################
 #           Main Script starts execution here
 ######################################################################################
@@ -68,12 +79,12 @@ try:
     # Save a copy of the csv from DOM.  (This contains all files of Type=Audio submitted by DOM members.)
     fileName = RadioSongLib.downloadFile(envproperties.URL_FOR_DOM_FILELIST)
 
-    # Attempt to remove NULL byte errors...
+    # Attempt to remove NULL byte errors, umlauts, and accented e's, and rows with just a '0' in them and nothing else...
     fi = open(fileName, 'rb')
     data = fi.read()
     fi.close()
     fo = open(fileName+'converted.csv', 'wb')
-    fo.write(data.replace('\x00', ''))
+    fo.write(data.replace('\x00', '').replace('ë', 'e').replace('é', 'e'))
     fo.close()
     fileName = fileName+'converted.csv'
 
@@ -87,18 +98,9 @@ try:
                 processRow(row)
                 songLib.totalRows += 1
 
-            # Just skip past this single row and continue in the loop
+            # If one row fails, just skip past this single row and continue in the loop
             except:
-                # TODO - make these config items in envproperties.py
-                appLogger.exception("Exception caught on a single row!  Attempting to continue...")
-
-                exType, value, traceback = sys.exc_info()
-
-                body = 'Type:  ' + str(exType) + '\n' + 'Value: ' + str(value) + '\n' + 'Row: ' + str(row)
-                DenhacEmail.SendEmail(fromAddr='autobot@denhac.org',
-                                      toAddr=['anthony.stonaker@gmail.com'],
-                                      subject='DOM Import Script Single Row Failure (attempting continue)',
-                                      body=body)
+                log_and_send_error('DOM Import Script Single Row Failure (attempting continue)')
                 continue
 
         # Print out the song count when we're done
@@ -116,13 +118,5 @@ except KeyboardInterrupt:
     exit(0)
 
 except:
-    appLogger.exception("Exception caught; aborting.")
     DenhacPidfile.removePidFile()
-
-    exType, value, traceback = sys.exc_info()
-    DenhacEmail.SendEmail(fromAddr = 'autobot@denhac.org',
-                          toAddr   = ['anthony.stonaker@gmail.com'],
-                          subject  = 'DOM Import Script Failed',
-                          body     = 'Type:  ' + str(exType) + '\n' +
-                                       'Value: ' + str(value) + '\n' +
-                                       'Trace: ' + str(traceback))
+    log_and_send_error('DOM Import Script Failed')
