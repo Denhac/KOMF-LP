@@ -30,6 +30,9 @@ APACHE_GROUP_NAME     = "apache"
 FADE_IN_SEC           = 0
 FADE_OUT_SEC          = 2
 
+ERROR_FROM_EMAIL = 'no@noreply.com'
+ERROR_TO_EMAIL_LIST = ['no@noreply.com']
+
 ########################################
 # Variables primarily for the script importfromarchive.org.py, but could be used by others
 ARCHIVE_ORG_QUERY_URL = "https://archive.org/advancedsearch.php?"
