@@ -123,6 +123,9 @@ class RadioSongLib:
         else:
             raise KeyError("Audio File column not found!")
 
+        if metadata['fileurl'] == '':
+            raise KeyError("No data in Audio File column!")
+
         # Theme
         if 'Theme' in row:
             metadata['theme'] = str(row['Theme'])
@@ -220,13 +223,20 @@ class RadioSongLib:
             metadata['bayesian'] = str(row['\"Bayesian Score\"'])
 
 #        if 'Vote!' in row:
-#            metadata['mean']     = float(str(row['Vote!']).replace('%',''))
+#            metadata['mean']     = float(str(row['Vote!']).replace('%', ''))
+        # Remove % if it exists (it comes and goes...)
         if 'Vote!' in row:
-            metadata['mean'] = float(str(row['Vote!']).replace('%',''))
+            metadata['mean'] = str(row['Vote!']).replace('%', '')
         elif '"Vote!"' in row:
-            metadata['mean'] = float(str(row['"Vote!"']).replace('%',''))
+            metadata['mean'] = str(row['"Vote!"']).replace('%', '')
         elif '\"Vote!\"' in row:
-            metadata['mean'] = float(str(row['\"Vote!\"']).replace('%',''))
+            metadata['mean'] = str(row['\"Vote!\"']).replace('%', '')
+
+        # Convert to float (and fill in blanks with 0.0)
+        if metadata['mean'] == '':
+            metadata['mean'] = 0.0
+        else:
+            metadata['mean'] = float(metadata['mean'])
 
 
         # Additional columns currently in the csv, but not in the mapping:

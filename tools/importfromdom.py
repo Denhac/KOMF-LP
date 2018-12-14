@@ -83,8 +83,23 @@ try:
 
         # Each row is a file to be downloaded, along with a few columns of metadata
         for row in memreader:
-            processRow(row)
-            songLib.totalRows += 1
+            try:
+                processRow(row)
+                songLib.totalRows += 1
+
+            # Just skip past this single row and continue in the loop
+            except:
+                # TODO - make these config items in envproperties.py
+                appLogger.exception("Exception caught on a single row!  Attempting to continue...")
+
+                exType, value, traceback = sys.exc_info()
+
+                body = 'Type:  ' + str(exType) + '\n' + 'Value: ' + str(value) + '\n' + 'Row: ' + str(row)
+                DenhacEmail.SendEmail(fromAddr='autobot@denhac.org',
+                                      toAddr=['anthony.stonaker@gmail.com'],
+                                      subject='DOM Import Script Single Row Failure (attempting continue)',
+                                      body=body)
+                continue
 
         # Print out the song count when we're done
         songLib.printCounts()
