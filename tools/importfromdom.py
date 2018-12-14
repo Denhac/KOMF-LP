@@ -8,6 +8,7 @@ import csv, sys
 sys.path.insert(0, '/var/www/api')
 from komfpackage import envproperties, DenhacEmail, DenhacPidfile, RadioSongLib
 
+
 ######################################################################################
 #           Global Objects
 ######################################################################################
@@ -28,8 +29,8 @@ except:
                           toAddr   = ['anthony.stonaker@gmail.com'],
                           subject  = 'DOM Import Script Failed',
                           body     = 'Type:  ' + str(exType) + '\n' +
-                                       'Value: ' + str(value) + '\n' +
-                                       'Trace: ' + str(traceback))
+                                     'Value: ' + str(value) + '\n' +
+                                     'Trace: ' + str(traceback))
     exit(0)
 
 ######################################################################################
@@ -67,6 +68,15 @@ try:
     # Save a copy of the csv from DOM.  (This contains all files of Type=Audio submitted by DOM members.)
     fileName = RadioSongLib.downloadFile(envproperties.URL_FOR_DOM_FILELIST)
 
+    # Attempt to remove NULL byte errors...
+    fi = open(fileName, 'rb')
+    data = fi.read()
+    fi.close()
+    fo = open(fileName+'converted.csv', 'wb')
+    fo.write(data.replace('\x00', ''))
+    fo.close()
+    fileName = fileName+'converted.csv'
+
     # Read it in, parsing it as a csv
     with open(fileName, "rb") as audiofile:
         memreader = csv.DictReader(audiofile, delimiter=',')
@@ -76,6 +86,7 @@ try:
             processRow(row)
             songLib.totalRows += 1
 
+        # Print out the song count when we're done
         songLib.printCounts()
 
     # Run any ongoing/periodic maintenance that we need to do, then shut down and exit

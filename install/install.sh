@@ -51,6 +51,7 @@ sudo yum -y install python-pip  # No idea why it has to be separate, but it won'
 sudo yum -y update
 
 yes | sudo pip install --upgrade pip
+yes | sudo pip install --upgrade setuptools
 yes | sudo pip install flask flask-cors PyMySQL eyed3 gTTS
 
 ########################################################

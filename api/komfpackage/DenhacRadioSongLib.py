@@ -87,22 +87,95 @@ class RadioSongLib:
     def getMetadataFromCsvRow(row):
         metadata = dict()
 
-        # No check on required fields; let them throw KeyError exception
-        metadata['title']         = str(row['Title'])
-        metadata['fileurl']       = str(row['Audio File'])
-        metadata['theme']         = str(row['Theme'])
-        metadata['genre']         = str(row['Genre'])
-        metadata['broadcastFlag'] = str(row['Authorized for Broadcast'])
-        metadata['indecencyFlag'] = str(row['Indecent Content'])
+#        metadata['title']         = str(row['Title'])
+#        metadata['fileurl']       = str(row['Audio File'])
+#        metadata['theme']         = str(row['Theme'])
+#        metadata['genre']         = str(row['Genre'])
+#        metadata['broadcastFlag'] = str(row['Authorized for Broadcast'])
+#        metadata['indecencyFlag'] = str(row['Indecent Content'])
+        metadata['title']         = ''
+        metadata['fileurl']       = ''
+        metadata['theme']         = ''
+        metadata['genre']         = ''
+        metadata['artist']        = ''
+        metadata['broadcastFlag'] = ''
+        metadata['indecencyFlag'] = ''
 
-        # Handle silly exception for a column that keeps changing back and forth in the export without warning....
-        metadata['artist'] = ''
-        if 'Production Company / Band' in row:
-            metadata['artist'] = str(row['Production Company / Band'])
-        elif 'Artist/Production Company/Band' in row:
-            metadata['artist'] = str(row['Artist/Production Company/Band'])
+        # This if/elif craziness is because columns/data can sometimes have quotes, sometimes not, without warning
+
+        # Title
+        if 'Title' in row:
+            metadata['title'] = str(row['Title'])
+        elif '"Title"' in row:
+            metadata['title'] = str(row['"Title"'])
+        elif '\"Title\"' in row:
+            metadata['title'] = str(row['\"Title\"'])
         else:
-            raise KeyError("Artist column not found!")
+            raise KeyError("Title column not found!")
+
+        # Audio File (URL/location)
+        if 'Audio File' in row:
+            metadata['fileurl'] = str(row['Audio File'])
+        elif '"Audio File"' in row:
+            metadata['fileurl'] = str(row['"Audio File"'])
+        elif '\"Audio File\"' in row:
+            metadata['fileurl'] = str(row['\"Audio File\"'])
+        else:
+            raise KeyError("Audio File column not found!")
+
+        # Theme
+        if 'Theme' in row:
+            metadata['theme'] = str(row['Theme'])
+        elif '"Theme"' in row:
+            metadata['theme'] = str(row['"Theme"'])
+        elif '\"Theme\"' in row:
+            metadata['theme'] = str(row['\"Theme\"'])
+        else:
+            raise KeyError("Theme column not found!")
+
+        # Genre
+        if 'Genre' in row:
+            metadata['genre'] = str(row['Genre'])
+        elif '"Genre"' in row:
+            metadata['genre'] = str(row['"Genre"'])
+        elif '\"Genre\"' in row:
+            metadata['genre'] = str(row['\"Genre\"'])
+        else:
+            raise KeyError("Genre column not found!")
+
+        # Artist
+        # Exception for one old column name:
+        if 'Artist/Production Company/Band' in row:
+            metadata['artist'] = str(row['Artist/Production Company/Band'])
+        elif 'Production Company / Band' in row:
+                metadata['artist'] = str(row['Production Company / Band'])
+        elif '"Production Company / Band"' in row:
+            metadata['artist'] = str(row['"Production Company / Band"'])
+        elif '\"Production Company / Band\"' in row:
+            metadata['artist'] = str(row['\"Production Company / Band\"'])
+        else:
+            raise KeyError("Production Company / Band column not found!")
+
+        # Authorized for Broadcast
+        if 'Authorized for Broadcast' in row:
+            metadata['broadcastFlag'] = str(row['Authorized for Broadcast'])
+        elif '"Authorized for Broadcast"' in row:
+            metadata['broadcastFlag'] = str(row['"Authorized for Broadcast"'])
+        elif '\"Authorized for Broadcast\"' in row:
+            metadata['broadcastFlag'] = str(row['\"Authorized for Broadcast\"'])
+        else:
+            raise KeyError("Authorized for Broadcast column not found!")
+
+        # Indecent Content
+        if 'Indecent Content' in row:
+            metadata['indecencyFlag'] = str(row['Indecent Content'])
+        elif '"Indecent Content"' in row:
+            metadata['indecencyFlag'] = str(row['"Indecent Content"'])
+        elif '\"Indecent Content\"' in row:
+            metadata['indecencyFlag'] = str(row['\"Indecent Content\"'])
+        else:
+            raise KeyError("Indecent Content column not found!")
+
 
         # Handle optional fields
         metadata['postdate'] = ''
@@ -113,14 +186,51 @@ class RadioSongLib:
 
         if 'Post date' in row:
             metadata['postdate'] = str(row['Post date'])
+        elif '"Post date"' in row:
+            metadata['postdate'] = str(row['"Post date"'])
+        elif '\"Post date\"' in row:
+            metadata['postdate'] = str(row['\"Post date\"'])
+
+#        if 'DJ Outro' in row:
+#            metadata['outroUrl'] = str(row['DJ Outro'])
+        # DJ Outro
         if 'DJ Outro' in row:
             metadata['outroUrl'] = str(row['DJ Outro'])
+        elif '"DJ Outro"' in row:
+            metadata['outroUrl'] = str(row['"DJ Outro"'])
+        elif '\"DJ Outro\"' in row:
+            metadata['outroUrl'] = str(row['\"DJ Outro\"'])
+
+#        if 'Album/Project' in row:
+#            metadata['album']    = str(row['Album/Project'])
         if 'Album/Project' in row:
-            metadata['album']    = str(row['Album/Project'])
+            metadata['album'] = str(row['Album/Project'])
+        elif '"Album/Project"' in row:
+            metadata['album'] = str(row['"Album/Project"'])
+        elif '\"Album/Project\"' in row:
+            metadata['album'] = str(row['\"Album/Project\"'])
+
+#        if 'Bayesian Score' in row:
+#            metadata['bayesian'] = float(row['Bayesian Score'])
         if 'Bayesian Score' in row:
-            metadata['bayesian'] = float(row['Bayesian Score'])
+            metadata['bayesian'] = str(row['Bayesian Score'])
+        elif '"Bayesian Score"' in row:
+            metadata['bayesian'] = str(row['"Bayesian Score"'])
+        elif '\"Bayesian Score\"' in row:
+            metadata['bayesian'] = str(row['\"Bayesian Score\"'])
+
+#        if 'Vote!' in row:
+#            metadata['mean']     = float(str(row['Vote!']).replace('%',''))
         if 'Vote!' in row:
-            metadata['mean']     = float(str(row['Vote!']).replace('%',''))
+            metadata['mean'] = float(str(row['Vote!']).replace('%',''))
+        elif '"Vote!"' in row:
+            metadata['mean'] = float(str(row['"Vote!"']).replace('%',''))
+        elif '\"Vote!\"' in row:
+            metadata['mean'] = float(str(row['\"Vote!\"']).replace('%',''))
+
+
+        # Additional columns currently in the csv, but not in the mapping:
+        # ^@"Album Cover"^@, "Logo", "Link"
 
         # Set year to the current year at the time of import, TODO - until we can get this value from the csv
         metadata['year'] = datetime.datetime.now().year
@@ -128,7 +238,7 @@ class RadioSongLib:
         # Unknown fields at this time but required by RadioDJ DB - TODO, get these fields from the csv one day
         metadata['copyright'] = "Unknown Copyright"
         metadata['publisher'] = "Unknown Publisher"
-        metadata['composer']  = "Unknown Composer"
+        metadata['composer'] = "Unknown Composer"
 
         # Set the URL-decoded filename and various necessary paths
         fileName = RadioSongLib.getFilenameFromUrl(metadata['fileurl'])
