@@ -223,3 +223,15 @@ class DenhacRadioDjDb(DenhacDb):
     def getKomfTrackSummary(self):
         sql = "select ks.*, s.path from komf_track_summary ks, songs s where s.ID = ks.songID"
         return self.executeQueryGetAllRows(sql, None)
+
+    def addSetMetadata(self, metadata):
+        sql = "INSERT INTO `setmetadata` (`metadata`) VALUES (%s)"
+        return self.executeQueryNoResult(sql, [metadata])
+
+    def getSetMetadata(self, is_processed):
+        sql = "SELECT * FROM `setmetadata` WHERE `processed` = %d"
+        return self.executeQueryGetAllRows(sql, [is_processed])
+
+    def setSetMetadataProcessed(self, id, processed):
+        sql = "UPDATE `setmetadata` SET `processed`=%d WHERE ID = %d"
+        return self.executeQueryNoResult(sql, [processed, id])

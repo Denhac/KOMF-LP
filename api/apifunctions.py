@@ -1,5 +1,5 @@
 # Python includes
-import logging, os, sys, urllib2
+import json, logging, os, sys, urllib2
 from threading import Thread
 
 # Flask and other third-party includes
@@ -239,22 +239,27 @@ def upload_file(folder):
 
 @app.route('/setmetadata/<path:filepath>', methods=['POST'])
 def set_metadata(filepath):
-    abs_path = validatepath(envproperties.BASE_HOSTING_DIR, filepath)
-    abs_path = abs_path + ".metadata"
+#    abs_path = validatepath(envproperties.BASE_HOSTING_DIR, filepath)
+#    abs_path = abs_path + ".metadata"
+    validatepath(envproperties.BASE_HOSTING_DIR, filepath)
 
     # Check that we have json data POSTed
     formdata = request.get_json()
     if formdata is None or formdata == '':
         raise BadRequestException(error="Metadata in JSON format is required.")
 
-    # TODO - check formdata[] for required fields here
+    if 'title' not in formdata:
+        raise BadRequestException(error="title is a required field.")
 
-    # Assuming we have all required fields, write the metadata to the filesystem
-    metadata_file = open(abs_path, 'w')
-    metadata_file.write(str(formdata))
-    metadata_file.close()
+    if 'broadcastFlag' in formdata and formdata['broadcastFlag'] == 'Yes':
+        if 'theme' not in formdata or 'genre' not in formdata or 'artist' not in formdata or 'broadcastFlag' not in formdata or 'indecencyFlag' not in formdata:
+            raise BadRequestException(error="title, theme, genre, artist, broadcastFlag, indecencyFlag are required fields when broadcastFlag='Yes'.")
 
-    return JsonTools.Reply(dict(success = "True"))
+    # Ok, the file exists and we know we have the required fields.  Save the transaction so the new import job can pick it up.
+    radioDj = DenhacRadioDjDb()
+    radioDj.addSetMetadata(json.dumps(formdata))
+
+    return JsonTools.Reply(dict(success="True"))
 
 @app.route('/movetolibrary/<dirname>/<filename>', methods=['GET'])
 def move_to_library(dirname, filename):
@@ -268,7 +273,7 @@ def move_to_library(dirname, filename):
     os.rename(fullpath,               os.path.join(envproperties.UPLOAD_LIBRARY_FOLDER, filename))
     os.rename(fullpath + '.metadata', os.path.join(envproperties.UPLOAD_LIBRARY_FOLDER, filename + '.metadata'))
 
-    return JsonTools.Reply(dict(success = "True"))
+    return JsonTools.Reply(dict(success="True"))
 
 @app.route('/themeblocktotals')
 def themeblocktotals():
@@ -448,9 +453,9 @@ def background_call_radiorethink(vars):
     except:
         exType, value, traceback = sys.exc_info()
         app.logger.error(str(value))
-        DenhacEmail.SendEmail(fromAddr = 'autobot@denhac.org',
-                              toAddr   = ['anthony.stonaker@gmail.com'],
-                              subject  = 'Callout to RadioRethink failed',
-                              body     = 'Type:  ' + str(exType) + '\n' +
-                                           'Value: ' + str(value) + '\n' +
-                                           'Trace: ' + str(traceback))
+        DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
+                              toAddr=envproperties.ERROR_TO_EMAIL_LIST,
+                              subject='Callout to RadioRethink failed',
+                              body='Type:  ' + str(exType) + '\n' +
+                                   'Value: ' + str(value) + '\n' +
+                                   'Trace: ' + str(traceback))
