@@ -239,8 +239,6 @@ def upload_file(folder):
 
 @app.route('/setmetadata/<path:filepath>', methods=['POST'])
 def set_metadata(filepath):
-#    abs_path = validatepath(envproperties.BASE_HOSTING_DIR, filepath)
-#    abs_path = abs_path + ".metadata"
     validatepath(envproperties.BASE_HOSTING_DIR, filepath)
 
     # Check that we have json data POSTed

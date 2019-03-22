@@ -59,7 +59,7 @@ smtp_password       = 'emailpass'
 #                      The test machine
 # Replacing the IP list with this instead:
 komf_password_hash = 'pbkdf2:sha1:1000$bnMTi7qI$5f215a8d1c82bc2482ce45f66e2725114683755d'
-# In test, this has is 'password'
+# In test, this hash is 'password'
 
 # Session-management variables
 session_key         = 'sessionkey'
