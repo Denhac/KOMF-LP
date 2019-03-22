@@ -26,12 +26,12 @@ except:
     exType, value, traceback = sys.exc_info()
     appLogger.error(str(value))
 
-    DenhacEmail.SendEmail(fromAddr = 'autobot@denhac.org',
-                          toAddr   = ['anthony.stonaker@gmail.com'],
-                          subject  = 'DOM Import Script Failed',
-                          body     = 'Type:  ' + str(exType) + '\n' +
-                                     'Value: ' + str(value) + '\n' +
-                                     'Trace: ' + str(traceback))
+    DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
+                          toAddr=envproperties.ERROR_TO_EMAIL_LIST,
+                          subject='DOM Import Script Failed',
+                          body='Type:  ' + str(exType) + '\n' +
+                               'Value: ' + str(value) + '\n' +
+                               'Trace: ' + str(traceback))
     exit(0)
 
 ######################################################################################
@@ -79,7 +79,7 @@ try:
     # Save a copy of the csv from DOM.  (This contains all files of Type=Audio submitted by DOM members.)
     fileName = RadioSongLib.downloadFile(envproperties.URL_FOR_DOM_FILELIST)
 
-    # Attempt to remove NULL byte errors, umlauts, and accented e's, and rows with just a '0' in them and nothing else...
+    # Attempt to remove NULL byte errors, umlauts, and accented e's
     fi = open(fileName, 'rb')
     data = fi.read()
     fi.close()
@@ -87,6 +87,13 @@ try:
     fo.write(data.replace('\x00', '').replace('ë', 'e').replace('é', 'e'))
     fo.close()
     fileName = fileName+'converted.csv'
+
+    # TODO
+    # , and rows with just a '0' in them and nothing else...
+
+
+
+
 
     # Read it in, parsing it as a csv
     with open(fileName, "rb") as audiofile:

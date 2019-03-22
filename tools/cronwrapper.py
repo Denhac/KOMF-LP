@@ -61,8 +61,8 @@ except:
     DenhacPidfile.removePidFile()
 
     exType, value, traceback = sys.exc_info()
-    DenhacEmail.SendEmail(fromAddr = 'autobot@denhac.org',
-                          toAddr   = ['anthony.stonaker@gmail.com'],
+    DenhacEmail.SendEmail(fromAddr = envproperties.ERROR_FROM_EMAIL,
+                          toAddr   = envproperties.ERROR_TO_EMAIL_LIST,
                           subject  = 'Cron Wrapper Script Failed',
                           body     = 'Type:  ' + str(exType) + '\n' +
                                        'Value: ' + str(value) + '\n' +
