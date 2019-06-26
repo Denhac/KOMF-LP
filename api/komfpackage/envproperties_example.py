@@ -63,3 +63,10 @@ komf_password_hash = 'pbkdf2:sha1:1000$bnMTi7qI$5f215a8d1c82bc2482ce45f66e272511
 
 # Session-management variables
 session_key         = 'sessionkey'
+
+# URLs to receive metadata updates as songs rotate
+send_to_radiorethink = True
+radiorethink_url = 'http://tempuri.org'
+
+send_to_icecast = True
+icecast_url = 'http://tempuri.org'

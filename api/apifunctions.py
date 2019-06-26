@@ -410,18 +410,19 @@ def nowplaying():
 
     # Start one background worker for each target that wants to receive a notification
     # (This way RadioDJ doesn't have to wait on a response if any remote system has any issues; it just rotates and continues.)
-    thread = Thread(target=background_call_radiorethink, args=[request.form])
-    thread.start()
+    if envproperties.send_to_radiorethink:
+        thread = Thread(target=background_call_radiorethink, args=[request.form])
+        thread.start()
 
-    ## thread2 = Thread(target=background_call_omf_website.... etc)
-    ## thread2.start()
-    ## etc
+    if envproperties.send_to_icecast:
+        thread2 = Thread(target=background_call_icecast, args=[request.form])
+        thread2.start()
 
     return JsonTools.Reply(dict(msg = "Success"))
 
+
 def background_call_radiorethink(vars):
-    # TODO - move this to envproperties.py config file
-    url = "https://radiorethink.org/playlistService/incoming.cfm?stationCode=KOMF"
+    url = envproperties.radiorethink_url
 
     if 'playlistServiceToken' in vars:
         url += "&playlistServiceToken=v3hamjBtzwYcgJ7u"
@@ -446,14 +447,40 @@ def background_call_radiorethink(vars):
 
     try:
         app.logger.error("Calling RadioRethink URL: " + url)
-        urllib2.urlopen(url = url, data = None, timeout = 60)
+        urllib2.urlopen(url=url, data=None, timeout=60)
+
+    except:
+        exType, value, traceback = sys.exc_info()
+        app.logger.debug(str(value))
+        DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
+                              toAddr=envproperties.ERROR_TO_EMAIL_LIST,
+                              subject='Callout to RadioRethink failed',
+                              body='Type:  ' + str(exType) + '\n' +
+                                   'Value: ' + str(value) + '\n' +
+                                   'Trace: ' + str(traceback))
+
+
+def background_call_icecast(vars):
+    url = envproperties.icecast_url
+
+    if 'track' not in vars:
+        return
+
+    url += "&song=" + urllib2.quote(vars['track'])
+
+    if 'album' in vars:
+        url += urllib2.quote(' - ' + vars['album'])
+
+    try:
+        app.logger.debug("Calling Icecast URL: " + url)
+        urllib2.urlopen(url=url, data=None, timeout=60)
 
     except:
         exType, value, traceback = sys.exc_info()
         app.logger.error(str(value))
         DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
                               toAddr=envproperties.ERROR_TO_EMAIL_LIST,
-                              subject='Callout to RadioRethink failed',
+                              subject='Callout to Icecast failed',
                               body='Type:  ' + str(exType) + '\n' +
                                    'Value: ' + str(value) + '\n' +
                                    'Trace: ' + str(traceback))
