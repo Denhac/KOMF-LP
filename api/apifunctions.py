@@ -1,5 +1,5 @@
 # Python includes
-import json, logging, os, sys, urllib2
+import base64, json, logging, os, sys, urllib2
 from threading import Thread
 
 # Flask and other third-party includes
@@ -386,6 +386,7 @@ def addrotationschedule():
 
     return redirect(url_for('viewrotationschedule'))
 
+
 @app.route('/manageinternalcontent', methods=['GET'])
 def manageinternalcontent():
     if not checkPassword():
@@ -394,6 +395,7 @@ def manageinternalcontent():
     radioDj = DenhacRadioDjDb()
     tracks  = radioDj.getKomfTrackSummary()
     return render_template('manageinternalcontent.html', tracks = tracks)
+
 
 @app.route('/nowplaying', methods=['POST'])
 def nowplaying():
@@ -448,6 +450,7 @@ def background_call_radiorethink(vars):
     try:
         app.logger.error("Calling RadioRethink URL: " + url)
         urllib2.urlopen(url=url, data=None, timeout=60)
+        app.logger.error("Successfully rotated RadioRethink metadata.")
 
     except:
         exType, value, traceback = sys.exc_info()
@@ -472,8 +475,19 @@ def background_call_icecast(vars):
         url += urllib2.quote(' - ' + vars['album'])
 
     try:
-        app.logger.debug("Calling Icecast URL: " + url)
-        urllib2.urlopen(url=url, data=None, timeout=60)
+        app.logger.error("Calling Icecast URL: " + url)
+
+#        req = urllib2.Request(url)
+#        base64string = base64.encodestring('%s:%s' % (envproperties.icecast_user, envproperties.icecast_password)).replace('\n', '')
+#        request.add_header("Authorization", "Basic %s" % base64string)
+#        urllib2.urlopen(req)
+
+        request = urllib2.Request(url)
+        b64auth = base64.standard_b64encode("%s:%s" % (envproperties.icecast_user, envproperties.icecast_password))
+        request.add_header("Authorization", "Basic %s" % b64auth)
+        urllib2.urlopen(request)
+
+        app.logger.error("Successfully rotated Icecast metadata.")
 
     except:
         exType, value, traceback = sys.exc_info()

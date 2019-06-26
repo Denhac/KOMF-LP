@@ -70,3 +70,5 @@ radiorethink_url = 'http://tempuri.org'
 
 send_to_icecast = True
 icecast_url = 'http://tempuri.org'
+icecast_user = 'user'
+icecast_password = 'password'
