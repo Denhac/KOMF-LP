@@ -454,7 +454,7 @@ def background_call_radiorethink(vars):
 
     except:
         exType, value, traceback = sys.exc_info()
-        app.logger.debug(str(value))
+        app.logger.error(str(value))
         DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
                               toAddr=envproperties.ERROR_TO_EMAIL_LIST,
                               subject='Callout to RadioRethink failed',
@@ -464,37 +464,36 @@ def background_call_radiorethink(vars):
 
 
 def background_call_icecast(vars):
-    url = envproperties.icecast_url
-
     if 'track' not in vars:
+        app.logger.error("No track data to send to Icecast.")
         return
 
-    url += "&song=" + urllib2.quote(vars['track'])
+    get_vars = 'mount=/stream&mode=updinfo&song=%s' % urllib2.quote(vars['track'])
 
-    if 'album' in vars:
-        url += urllib2.quote(' - ' + vars['album'])
+    if 'artist' in vars and 'unknown' not in vars['artist'].lower():
+        get_vars += urllib2.quote(' by %s' % vars['artist'])
+
+    url = envproperties.icecast_url + '?' + get_vars
 
     try:
         app.logger.error("Calling Icecast URL: " + url)
 
-#        req = urllib2.Request(url)
-#        base64string = base64.encodestring('%s:%s' % (envproperties.icecast_user, envproperties.icecast_password)).replace('\n', '')
-#        request.add_header("Authorization", "Basic %s" % base64string)
-#        urllib2.urlopen(req)
-
-        request = urllib2.Request(url)
+        req = urllib2.Request(url)
         b64auth = base64.standard_b64encode("%s:%s" % (envproperties.icecast_user, envproperties.icecast_password))
-        request.add_header("Authorization", "Basic %s" % b64auth)
-        urllib2.urlopen(request)
+        req.add_header("Authorization", "Basic %s" % b64auth)
+        urllib2.urlopen(req)
 
         app.logger.error("Successfully rotated Icecast metadata.")
 
     except:
         exType, value, traceback = sys.exc_info()
         app.logger.error(str(value))
+
+        message_body = 'Type:  ' + str(exType) + '\n' +\
+                       'Value: ' + str(value) + '\n' +\
+                       'Trace: ' + str(traceback) + '\n'
+
         DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
                               toAddr=envproperties.ERROR_TO_EMAIL_LIST,
                               subject='Callout to Icecast failed',
-                              body='Type:  ' + str(exType) + '\n' +
-                                   'Value: ' + str(value) + '\n' +
-                                   'Trace: ' + str(traceback))
+                              body=message_body)
