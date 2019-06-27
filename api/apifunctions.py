@@ -4,7 +4,7 @@ from threading import Thread
 
 # Flask and other third-party includes
 from logging.handlers import RotatingFileHandler
-from flask import Flask, request, session, render_template, redirect, url_for, abort, send_from_directory, jsonify
+from flask import Flask, request, session, render_template, redirect, url_for, send_from_directory
 from werkzeug import secure_filename, check_password_hash
 #from flask_cors import CORS, cross_origin
 
@@ -17,7 +17,6 @@ from DenhacEmailLibrary import *
 
 # Start 'er up
 app = Flask(__name__)
-#CORS(app)
 
 ####################################################################################
 ###### Debug is only invoked when run from the command-line for testing:
@@ -468,12 +467,13 @@ def background_call_icecast(vars):
         app.logger.error("No track data to send to Icecast.")
         return
 
-    get_vars = 'mount=/stream&mode=updinfo&song=%s' % urllib2.quote(vars['track'])
+    get_vars = 'mount=/stream&mode=updinfo&song='
 
     if 'artist' in vars and 'unknown' not in vars['artist'].lower():
-        get_vars += urllib2.quote(' by %s' % vars['artist'])
+        get_vars += urllib2.quote(vars['artist'].replace('-', ''))
 
-    get_vars += urllib2.quote(' on Denver Open Media')
+    get_vars += urllib2.quote(' - ' + vars['track'].replace('-', ''))
+
     url = envproperties.icecast_url + '?' + get_vars
 
     try:
