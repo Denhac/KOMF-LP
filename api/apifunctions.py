@@ -473,6 +473,7 @@ def background_call_icecast(vars):
     if 'artist' in vars and 'unknown' not in vars['artist'].lower():
         get_vars += urllib2.quote(' by %s' % vars['artist'])
 
+    get_vars += urllib2.quote(' on Denver Open Media')
     url = envproperties.icecast_url + '?' + get_vars
 
     try:
