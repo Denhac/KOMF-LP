@@ -7,7 +7,7 @@ import csv, sys
 # Our own package includes
 # insert() makes our path the first searched entry, as opposed to append()
 sys.path.insert(0, '/var/www/api')
-from komfpackage import envproperties, DenhacRadioDjDb, DenhacEmail, DenhacPidfile, RadioSongLib
+from komfpackage import envproperties, DenhacRadioDjDb, DenhacPidfile, RadioSongLib
 
 
 ######################################################################################
@@ -27,12 +27,12 @@ except:
     exType, value, traceback = sys.exc_info()
     appLogger.error(str(value))
 
-    DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
-                          toAddr=envproperties.ERROR_TO_EMAIL_LIST,
-                          subject='DOM Import Script Failed',
-                          body='Type:  ' + str(exType) + '\n' +
-                               'Value: ' + str(value) + '\n' +
-                               'Trace: ' + str(traceback))
+#    DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
+#                          toAddr=envproperties.ERROR_TO_EMAIL_LIST,
+#                          subject='DOM Import Script Failed',
+#                          body='Type:  ' + str(exType) + '\n' +
+#                               'Value: ' + str(value) + '\n' +
+#                               'Trace: ' + str(traceback))
     exit(0)
 
 ######################################################################################
@@ -62,13 +62,13 @@ def processRow(row):
 
 
 def log_and_send_error(subject):
-    appLogger.exception(subject)
     e, v, t = sys.exc_info()
-    msg_body = 'Type:  ' + str(e) + '\n' + 'Value: ' + str(v) + '\n'
-    DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
-                          toAddr=envproperties.ERROR_TO_EMAIL_LIST,
-                          subject=subject,
-                          body=msg_body)
+    appLogger.exception("%s: %s:%s" % (subject, str(e), str(v)))
+#    msg_body = 'Type:  ' + str(e) + '\n' + 'Value: ' + str(v) + '\n'
+#    DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
+#                          toAddr=envproperties.ERROR_TO_EMAIL_LIST,
+#                          subject=subject,
+#                          body=msg_body)
 
 ######################################################################################
 #           Main Script starts execution here
