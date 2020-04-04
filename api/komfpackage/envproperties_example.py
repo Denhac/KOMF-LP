@@ -32,6 +32,7 @@ FADE_OUT_SEC          = 2
 
 ERROR_FROM_EMAIL = 'no@noreply.com'
 ERROR_TO_EMAIL_LIST = ['no@noreply.com']
+ERROR_IMPORT_CHECK_EMAIL_LIST = ['no@noreply.com']
 
 ########################################
 # Variables primarily for the script importfromarchive.org.py, but could be used by others
