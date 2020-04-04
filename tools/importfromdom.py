@@ -7,7 +7,7 @@ import csv, sys
 # Our own package includes
 # insert() makes our path the first searched entry, as opposed to append()
 sys.path.insert(0, '/var/www/api')
-from komfpackage import envproperties, DenhacEmail, DenhacPidfile, RadioSongLib
+from komfpackage import envproperties, DenhacRadioDjDb, DenhacEmail, DenhacPidfile, RadioSongLib
 
 
 ######################################################################################
@@ -17,6 +17,7 @@ from komfpackage import envproperties, DenhacEmail, DenhacPidfile, RadioSongLib
 # Library of all our helper functions needed for this script (manipulating id3s, setting metadata, etc)
 songLib   = RadioSongLib()
 appLogger = songLib.setAppLogger()
+radioDjDb = DenhacRadioDjDb()
 
 ######################################################################################
 # Be certain that only one copy of this script can run at a time
@@ -111,8 +112,13 @@ try:
         # Print out the song count when we're done
         songLib.printCounts()
 
-    # Run any ongoing/periodic maintenance that we need to do, then shut down and exit
+    # Run any ongoing/periodic maintenance that we need to do
     songLib.constantMaintenance()
+
+    # Record our last successful import time for display on the tools page
+    radioDjDb.setLastImportDatetime()
+
+    # Clean up, shut down and exit
     DenhacPidfile.removePidFile()
     appLogger.debug("Complete.")
 

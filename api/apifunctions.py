@@ -136,7 +136,10 @@ def login():
 def internalpages():
     if not checkPassword():
         return redirect(url_for('main'))
-    return render_template('internalpages.html')
+
+    radioDj = DenhacRadioDjDb()
+    row = radioDj.getLastImportDatetime()[0]
+    return render_template('internalpages.html', row=row)
 
 @app.route('/logout', methods=['GET'])
 def logout():

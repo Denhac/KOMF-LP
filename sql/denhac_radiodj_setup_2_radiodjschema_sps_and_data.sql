@@ -1209,3 +1209,32 @@ DELIMITER ;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2016-11-30 11:49:19
+
+
+/* April 2020 */
+CREATE TABLE `komf_last_import_datetime` (
+	`last_import_datetime` DATETIME NOT NULL
+)
+COLLATE='latin1_swedish_ci'
+ENGINE=InnoDB
+;
+
+INSERT INTO `komf_last_import_datetime` VALUES (NOW());
+
+DELIMITER ;;
+CREATE PROCEDURE `komf_update_last_import_datetime`()
+LANGUAGE SQL
+NOT DETERMINISTIC
+CONTAINS SQL
+SQL SECURITY DEFINER
+COMMENT ''
+BEGIN
+
+	UPDATE `komf_last_import_datetime`
+	SET `last_import_datetime` = NOW();
+
+END;;
+
+DELIMITER ;
+
+/* End April 2020 */

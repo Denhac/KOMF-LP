@@ -20,7 +20,7 @@ class DenhacDb:
     _connect        = None
     _lastUsedCursor = None
 
-    # This method is overrided by the child classes
+    # This method is overridden by the child classes
     @abstractmethod
     def connect(self):
         pass
@@ -235,3 +235,11 @@ class DenhacRadioDjDb(DenhacDb):
     def setSetMetadataProcessed(self, id, processed):
         sql = "UPDATE `setmetadata` SET `processed`=%d WHERE ID = %d"
         return self.executeQueryNoResult(sql, [processed, id])
+
+    def setLastImportDatetime(self):
+        sql = "CALL komf_update_last_import_datetime()"
+        return self.executeQueryNoResult(sql, None)
+
+    def getLastImportDatetime(self):
+        sql = "SELECT * FROM komf_last_import_datetime"
+        return self.executeQueryGetAllRows(sql, None)
