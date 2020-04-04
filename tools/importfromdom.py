@@ -63,7 +63,7 @@ def processRow(row):
 def log_and_send_error(subject):
     appLogger.exception(subject)
     e, v, t = sys.exc_info()
-    msg_body = 'Type:  ' + str(e) + '\n' + 'Value: ' + str(v) + '\n' + 'Row: ' + str(row)
+    msg_body = 'Type:  ' + str(e) + '\n' + 'Value: ' + str(v) + '\n'
     DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
                           toAddr=envproperties.ERROR_TO_EMAIL_LIST,
                           subject=subject,
@@ -90,8 +90,6 @@ try:
 
     # TODO
     # , and rows with just a '0' in them and nothing else...
-
-
 
 
 

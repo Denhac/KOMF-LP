@@ -462,9 +462,15 @@ class RadioSongLib:
                             play_limit   = play_limit,
                             limit_action = limit_action)
 
+        # April 2020 - handle post date from .csv
+        if len(metadata['postdate']) > 0:
+            metadata['postdate'] = datetime.datetime.strptime(metadata['postdate'][0:10], "%m/%d/%Y").date()
+        else:
+            metadata['postdate'] = None
+
         # Write extended data - stuff from the audio.csv that does not have a default place in RadioDJ
         row = self.radioDj.getSongByPath(metadata['frontendPath'])
-        self.radioDj.setSongExtended(row['ID'], metadata['bayesian'], metadata['mean'], indecent)
+        self.radioDj.setSongExtended(row['ID'], metadata['bayesian'], metadata['mean'], indecent, metadata['postdate'])
 
         # Outro files always exist by this point now
         self.radioDj.upsertSongs(metadata['outroFrontendPath'],

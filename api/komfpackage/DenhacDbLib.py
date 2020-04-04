@@ -91,9 +91,9 @@ class DenhacRadioDjDb(DenhacDb):
         rows = self.executeQueryGetAllRows(sql, [path])
         return rows[0]
 
-    def setSongExtended(self, song_id, bayesian, mean, explicit):
-        sql = "CALL `komf_upsert_song_extended`(%s,%s,%s,%s)"
-        self.executeQueryNoResult(sql, [song_id, bayesian, mean, explicit])
+    def setSongExtended(self, song_id, bayesian, mean, explicit, post_date):
+        sql = "CALL `komf_upsert_song_extended`(%s,%s,%s,%s,%s)"
+        self.executeQueryNoResult(sql, [song_id, bayesian, mean, explicit, post_date])
 
     def deleteSong(self, path):
         sql = "CALL `komf_delete_song`(%s)"
