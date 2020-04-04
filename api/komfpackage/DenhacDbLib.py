@@ -245,7 +245,10 @@ class DenhacRadioDjDb(DenhacDb):
         return self.executeQueryNoResult(sql, None)
 
     def getLastImportDatetime(self):
-        sql = "SELECT * FROM komf_last_import_datetime"
+        sql = """SELECT TIMESTAMPDIFF(SECOND, last_import_datetime, NOW()) AS seconds_since_last_import,
+        		 TIMESTAMPDIFF(SECOND, last_maintenance_datetime, NOW()) AS seconds_since_last_maintenance,
+                 a.*
+                 FROM komf_last_import_datetime a"""
         return self.executeQueryGetAllRows(sql, None)
 
     def deleteSongImportFailures(self):

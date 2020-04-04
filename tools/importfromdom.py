@@ -107,7 +107,6 @@ try:
 
             # If one row fails, just skip past this single row and continue in the loop
             except:
-                #log_and_send_error('DOM Import Script Single Row Failure (attempting continue)')
                 e, v, t = sys.exc_info()
                 radioDjDb.setSongImportFailure(row['Title'], row['Link'], str(e), str(v), str(t))
                 appLogger.exception("%s:%s" % (str(e), str(v)))

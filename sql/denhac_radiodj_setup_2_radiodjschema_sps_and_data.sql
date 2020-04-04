@@ -1213,8 +1213,8 @@ DELIMITER ;
 
 /* April 2020 */
 CREATE TABLE `komf_last_import_datetime` (
-	`last_import_datetime` DATETIME NOT NULL,
-	`last_maintenance_datetime` DATETIME NOT NULL
+	`last_import_datetime` TIMESTAMP NOT NULL,
+	`last_maintenance_datetime` TIMESTAMP NOT NULL
 )
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB
