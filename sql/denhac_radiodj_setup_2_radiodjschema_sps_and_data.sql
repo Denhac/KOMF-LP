@@ -1213,13 +1213,14 @@ DELIMITER ;
 
 /* April 2020 */
 CREATE TABLE `komf_last_import_datetime` (
-	`last_import_datetime` DATETIME NOT NULL
+	`last_import_datetime` DATETIME NOT NULL,
+	`last_maintenance_datetime` DATETIME NOT NULL
 )
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB
 ;
 
-INSERT INTO `komf_last_import_datetime` VALUES (NOW());
+INSERT INTO `komf_last_import_datetime` VALUES (NOW(), NOW());
 
 DELIMITER ;;
 CREATE PROCEDURE `komf_update_last_import_datetime`()
@@ -1234,7 +1235,53 @@ BEGIN
 	SET `last_import_datetime` = NOW();
 
 END;;
+DELIMITER ;
 
+DELIMITER ;;
+CREATE PROCEDURE `komf_update_last_maintenance_datetime`()
+LANGUAGE SQL
+NOT DETERMINISTIC
+CONTAINS SQL
+SQL SECURITY DEFINER
+COMMENT ''
+BEGIN
+
+	UPDATE `komf_last_import_datetime`
+	SET `last_maintenance_datetime` = NOW();
+
+END;;
+DELIMITER ;
+
+CREATE TABLE `komf_song_import_failures` (
+	`song_title` VARCHAR(1024) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
+	`song_link` VARCHAR(1024) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
+	`error_type` VARCHAR(1024) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
+	`error_message` VARCHAR(1024) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
+	`error_traceback` VARCHAR(2048) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci'
+)
+COLLATE='latin1_swedish_ci'
+ENGINE=InnoDB
+;
+
+DELIMITER ;;
+CREATE DEFINER=`radiodj`@`%` PROCEDURE `komf_insert_song_import_failures`(
+	IN `i_song_title` VARCHAR(1024),
+	IN `i_song_link` VARCHAR(1024),
+	IN `i_error_type` VARCHAR(1024),
+	IN `i_error_message` VARCHAR(1024),
+	IN `i_error_traceback` VARCHAR(2048)
+)
+LANGUAGE SQL
+NOT DETERMINISTIC
+CONTAINS SQL
+SQL SECURITY DEFINER
+COMMENT ''
+BEGIN
+
+	INSERT INTO `komf_song_import_failures` (song_title, song_link, error_type, error_message, error_traceback)
+	VALUES (i_song_title, i_song_link, i_error_type, i_error_message, i_error_traceback);
+
+END;;
 DELIMITER ;
 
 /* End April 2020 */

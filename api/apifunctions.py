@@ -501,3 +501,24 @@ def background_call_icecast(vars):
                               toAddr=envproperties.ERROR_TO_EMAIL_LIST,
                               subject='Callout to Icecast failed',
                               body=message_body)
+
+
+@app.route('/viewsongimportfailures', methods=['GET'])
+def viewsongimportfailures():
+    if not checkPassword():
+        return redirect(url_for('main'))
+
+    radioDj = DenhacRadioDjDb()
+    rows = radioDj.getSongImportFailures()
+
+    decodedrows = []
+    for row in rows:
+        newRow = {
+            "song_title": str(row['song_title']).decode("utf-8"),
+            "song_link": str(row['song_link']).decode("utf-8"),
+            "error_type": row['error_type'],
+            "error_message": row['error_message']
+        }
+        decodedrows.append(newRow)
+
+    return render_template('songimportfailures.html', rows=decodedrows)

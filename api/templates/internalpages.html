@@ -1,8 +1,16 @@
-<br/>Last Successful Import: {{ row.last_import_datetime }}
-<br/>
-<br/><a href={{ url_for('updateschedules') }}>Update Schedules</a>
-<br/><a href={{ url_for('viewrotationschedule') }}>View Rotation Schedules</a>
-<br/><a href={{ url_for('manageinternalcontent') }}>Manage Internal Content</a>
-<br/>
-<br/><a href={{ url_for('logout') }}>Logout</a>
-<br/>
+<!doctype html>
+<html>
+    <title>Internal Tools Pages</title>
+    <body>
+        <br/>Last Successful Import: {{ row.last_import_datetime }}
+        <br/>Last Successful Maintenance/Events Update: {{ row.last_maintenance_datetime }}
+        <br/>
+        <br/><a href={{ url_for('updateschedules') }}>Update Schedules</a>
+        <br/><a href={{ url_for('viewrotationschedule') }}>View Rotation Schedules</a>
+        <br/><a href={{ url_for('manageinternalcontent') }}>Manage Internal Content</a>
+        <br/><a href={{ url_for('viewsongimportfailures') }}>View Song Import Failures</a>
+        <br/>
+        <br/><a href={{ url_for('logout') }}>Logout</a>
+        <br/>
+    </body>
+</html>

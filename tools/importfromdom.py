@@ -92,7 +92,8 @@ try:
     # TODO
     # , and rows with just a '0' in them and nothing else...
 
-
+    # Clear the song failure table before starting the import loop
+    radioDjDb.deleteSongImportFailures()
 
     # Read it in, parsing it as a csv
     with open(fileName, "rb") as audiofile:
@@ -106,17 +107,23 @@ try:
 
             # If one row fails, just skip past this single row and continue in the loop
             except:
-                log_and_send_error('DOM Import Script Single Row Failure (attempting continue)')
+                #log_and_send_error('DOM Import Script Single Row Failure (attempting continue)')
+                e, v, t = sys.exc_info()
+                radioDjDb.setSongImportFailure(row['Title'], row['Link'], str(e), str(v), str(t))
+                appLogger.exception("%s:%s" % (str(e), str(v)))
                 continue
 
         # Print out the song count when we're done
         songLib.printCounts()
 
+    # Record our last successful import time for display on the tools page
+    radioDjDb.setLastImportDatetime()
+
     # Run any ongoing/periodic maintenance that we need to do
     songLib.constantMaintenance()
 
-    # Record our last successful import time for display on the tools page
-    radioDjDb.setLastImportDatetime()
+    # Record our last successful maintenance time for display on the tools page
+    radioDjDb.setLastMaintenanceDatetime()
 
     # Clean up, shut down and exit
     DenhacPidfile.removePidFile()

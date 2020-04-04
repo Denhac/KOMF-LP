@@ -501,14 +501,14 @@ class RadioSongLib:
             self.radioDj.deleteSong(metadata['outroFrontendPath'])
 
     def constantMaintenance(self):
-        # Update any P:\ paths to \\<address> network path instead (fixes issues caused by manual uploads as opposed to automated imports)
-        self.radioDj.autoUpdatePath()
-
         # Call the URL to ask RadioDJ to refresh its Events list (so that other users with separate RadioDJ front ends can create schedules. (This triggers the master RadioDJ instance to refresh them.)
         # TODO - move this URL to envprops
         response = urllib.urlopen("http://192.168.22.16:8080/opt?auth=104.7lpfm&command=RefreshEvents")
         responseText = response.read()
         self.appLogger.debug("Refresh events response: " + responseText)
+
+        # Update any P:\ paths to \\<address> network path instead (fixes issues caused by manual uploads as opposed to automated imports)
+        self.radioDj.autoUpdatePath()
 
     def printCounts(self):
         if self.totalRows > 0:

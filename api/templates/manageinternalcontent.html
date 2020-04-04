@@ -1,27 +1,24 @@
 <!doctype html>
 <html>
-<title>Manage Internal Content</title>
-
-<body>
-
-	Internal Tracks List:
-	<table border="2">
-		<tr>
-			<td><b>Song ID</b></td><td><b>Play</b></td><td><b>Enabled</b></td><td><b>Title</b></td><td><b>Artist</b></td><td><b>DOM Project</b></td><td><b>Subcategory</b></td><td><b>Category</b></td>
-		</tr>
-		{% for row in tracks %}
-		<tr>
-			<td>{{ row.songID }}</td>
-			<td><a href='{{ row.path }}'>Play</a></td>
-			<td>{{ row.enabled }}</td>
-			<td>{{ row.title }}</td>
-			<td>{{ row.artist }}</td>
-			<td>{{ row.DOMproject }}</td>
-			<td>{{ row.Subcategory }}</td>
-			<td>{{ row.Category }}</td>
-		</tr>
-		{% endfor %}
-	</table>
-
-</body>
+	<title>Manage Internal Content</title>
+	<body>
+		Internal Tracks List:
+		<table border="2">
+			<tr>
+				<td><b>Song ID</b></td><td><b>Play</b></td><td><b>Enabled</b></td><td><b>Title</b></td><td><b>Artist</b></td><td><b>DOM Project</b></td><td><b>Subcategory</b></td><td><b>Category</b></td>
+			</tr>
+			{% for row in tracks %}
+			<tr>
+				<td>{{ row.songID }}</td>
+				<td><a href='{{ row.path }}'>Play</a></td>
+				<td>{{ row.enabled }}</td>
+				<td>{{ row.title }}</td>
+				<td>{{ row.artist }}</td>
+				<td>{{ row.DOMproject }}</td>
+				<td>{{ row.Subcategory }}</td>
+				<td>{{ row.Category }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+	</body>
 </html>

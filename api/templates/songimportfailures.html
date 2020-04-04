@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+    <title>Song Import Failures</title>
+    <body>
+        <br/><b>NOTE:</b> if this is ever empty, check the time.  If it's shortly after the hour, the import script is probably running, meaning this table is temporarily cleared.  Check again soon...
+        <br/>
+        <br/>Total Failures: {{ rows|length }}
+        <br/>
+
+        <table border="2">
+            <tr>
+                <td><b>Song Title</b></td><td><b>Song Link</b></td><td><b>Error Type</b></td><td><b>Error Message</b></td>
+            </tr>
+            {% for row in rows %}
+            <tr>
+                <td>{{ row.song_title }}</td>
+                <td><a href="{{ row.song_link }}">{{ row.song_link }}</a></td>
+                <td>{{ row.error_type }}</td>
+                <td>{{ row.error_message }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>

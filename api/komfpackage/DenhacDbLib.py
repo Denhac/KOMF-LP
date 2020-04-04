@@ -240,6 +240,22 @@ class DenhacRadioDjDb(DenhacDb):
         sql = "CALL komf_update_last_import_datetime()"
         return self.executeQueryNoResult(sql, None)
 
+    def setLastMaintenanceDatetime(self):
+        sql = "CALL komf_update_last_maintenance_datetime()"
+        return self.executeQueryNoResult(sql, None)
+
     def getLastImportDatetime(self):
         sql = "SELECT * FROM komf_last_import_datetime"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def deleteSongImportFailures(self):
+        sql = "TRUNCATE TABLE komf_song_import_failures"
+        return self.executeQueryNoResult(sql, None)
+
+    def setSongImportFailure(self, song_title, song_link, error_type, error_message, traceback):
+        sql = "CALL komf_insert_song_import_failures(%s,%s,%s,%s,%s)"
+        return self.executeQueryNoResult(sql, [song_title, song_link, error_type, error_message, traceback])
+
+    def getSongImportFailures(self):
+        sql = "SELECT * FROM komf_song_import_failures"
         return self.executeQueryGetAllRows(sql, None)
