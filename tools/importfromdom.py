@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # Python includes
-import csv, sys
+import csv
+import os
+import sys
 
 # Our own package includes
 # insert() makes our path the first searched entry, as opposed to append()
@@ -85,12 +87,15 @@ try:
     data = fi.read()
     fi.close()
     fo = open(fileName+'converted.csv', 'wb')
-    fo.write(data.replace('\x00', '').replace('ë', 'e').replace('é', 'e'))
+    fo.write(data.replace('\x00', '').replace('ë', 'e').replace('é', 'e'))    # TODO and rows with just a '0' in them and nothing else...
     fo.close()
     fileName = fileName+'converted.csv'
 
-    # TODO
-    # , and rows with just a '0' in them and nothing else...
+    # Apr 2020 - if too small, just fail.
+    # (Sometimes it reports success, but with a message like, "app did not respond in time".)
+    filesize = os.path.getsize(fileName)
+    if filesize < 1024 * 500:       # 500 KB
+        raise RuntimeError("%s is too small for processing (%s).  Fail." % (fileName, filesize))
 
     # Clear the song failure table before starting the import loop
     radioDjDb.deleteSongImportFailures()
