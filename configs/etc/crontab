@@ -1,3 +1,3 @@
-0 * * * * cd /root/KOMF-LP/tools && ./importfromdom.py >>/var/www/log/importfromdom.log 2>&1
-15 * * * * /root/KOMF-LP/tools/cronwrapper.py "CALL komf_update_scheduled_shows"
+45 * * * * cd /root/KOMF-LP/tools && ./importfromdom.py >>/var/www/log/importfromdom.log 2>&1
+25 * * * * /root/KOMF-LP/tools/cronwrapper.py "CALL komf_update_scheduled_shows"
 30 */12 * * * cd /root/KOMF-LP/tools && ./importcheck.py >>/var/www/log/importfromdom.log 2>&1

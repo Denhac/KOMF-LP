@@ -5,6 +5,7 @@
 import csv
 import os
 import sys
+import time
 
 # Our own package includes
 # insert() makes our path the first searched entry, as opposed to append()
@@ -82,10 +83,21 @@ try:
     # Save a copy of the csv from DOM.  (This contains all files of Type=Audio submitted by DOM members.)
     fileName = RadioSongLib.downloadFile(envproperties.URL_FOR_DOM_FILELIST)
 
-    # Attempt to remove NULL byte errors, umlauts, and accented e's
+    # Open the file, get the data, and preprocess it.  Save data to our new file after we're done
     fi = open(fileName, 'rb')
     data = fi.read()
     fi.close()
+
+    # Check for specific type of error, then retry immediately
+    if data.startswith('The application did not respond in time.'):
+        appLogger.info("Failed to retrieve audio_csv due to 'did not respond in time' error.  Retrying in 30 seconds.")
+        time.sleep(30)
+        fileName = RadioSongLib.downloadFile(envproperties.URL_FOR_DOM_FILELIST)
+        fi = open(fileName, 'rb')
+        data = fi.read()
+        fi.close()
+
+    # Attempt to remove NULL byte errors, umlauts, and accented e's
     fo = open(fileName+'converted.csv', 'wb')
     fo.write(data.replace('\x00', '').replace('ë', 'e').replace('é', 'e'))    # TODO and rows with just a '0' in them and nothing else...
     fo.close()
