@@ -859,16 +859,18 @@ CREATE DEFINER=`radiodj`@`%` PROCEDURE `komf_upsert_komf_scheduled_shows`(
 			 i_playlist_id	int(11),
              i_project 		varchar(255),
              i_day 			varchar(10),
-             i_time_string	varchar(8)
+             i_time_string	varchar(8),
+             i_show_length  TIME
             )
 BEGIN
 
-	INSERT INTO komf_scheduled_shows (playlist_id, project, day, time_string)
-    VALUES (i_playlist_id, i_project, i_day, i_time_string)
+	INSERT INTO komf_scheduled_shows (playlist_id, project, day, time_string, show_length)
+    VALUES (i_playlist_id, i_project, i_day, i_time_string, i_show_length)
     ON DUPLICATE KEY UPDATE
 		project		= i_project,
         day			= i_day,
-        time_string = i_time_string;
+        time_string = i_time_string,
+		  show_length = i_show_length;
 
 END ;;
 DELIMITER ;

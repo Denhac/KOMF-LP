@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+	<title>Manage Calendars</title>
+	<body>
+		<b>Manage Calendars</b>
+		<hr/><br/>
+
+		<b>Consolidated Active Calendar</b><br/>
+		{{ consolidated_active_calendar_comment }}<br/>
+		<table border="2">
+			<tr>
+				<td><b>Time</b></td><td><b>Sun</b></td><td><b>Mon</b></td><td><b>Tues</b></td><td><b>Wed</b></td><td><b>Thurs</b></td><td><b>Fri</b></td><td><b>Sat</b>
+			</tr>
+			{% for row in consolidated_active_calendar %}
+			<tr>
+				<td>{{ row.time }}</td>
+				<td>{{ row.Sun }}</td>
+				<td>{{ row.Mon }}</td>
+				<td>{{ row.Tues }}</td>
+				<td>{{ row.Wed }}</td>
+				<td>{{ row.Thurs }}</td>
+				<td>{{ row.Fri }}</td>
+				<td>{{ row.Sat }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		<hr/><br/>
+
+		<b>Active Live Show Calendar</b><br/>
+		{{ active_live_show_calendar_comment }}<br/>
+		<table border="2">
+			<tr>
+				<td><b>Time</b></td><td><b>Sun</b></td><td><b>Mon</b></td><td><b>Tues</b></td><td><b>Wed</b></td><td><b>Thurs</b></td><td><b>Fri</b></td><td><b>Sat</b></td>
+			</tr>
+			{% for row in active_live_show_calendar %}
+			<tr>
+				<td>{{ row.time }}</td>
+				<td>{{ row.Sunday }}</td>
+				<td>{{ row.Monday }}</td>
+				<td>{{ row.Tuesday }}</td>
+				<td>{{ row.Wednesday }}</td>
+				<td>{{ row.Thursday }}</td>
+				<td>{{ row.Friday }}</td>
+				<td>{{ row.Saturday }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		<hr/><br/>
+
+		<b>Active Prerecorded Show Calendar</b><br/>
+		{{ active_prerecorded_show_calendar_comment }}<br/>
+		<table border="2">
+			<tr>
+				<td><b>Time</b></td><td><b>Sun</b></td><td><b>Mon</b></td><td><b>Tues</b></td><td><b>Wed</b></td><td><b>Thurs</b></td><td><b>Fri</b></td><td><b>Sat</b></td>
+			</tr>
+			{% for row in active_prerecorded_show_calendar %}
+			<tr>
+				<td>{{ row.time }}</td>
+				<td>{{ row.Sunday }}</td>
+				<td>{{ row.Monday }}</td>
+				<td>{{ row.Tuesday }}</td>
+				<td>{{ row.Wednesday }}</td>
+				<td>{{ row.Thursday }}</td>
+				<td>{{ row.Friday }}</td>
+				<td>{{ row.Saturday }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		<hr/><br/>
+
+		<b>Active Rotation Calendar</b><br/>
+		{{ active_rotation_calendar_comment }}<br/>
+		<table border="2">
+			<tr>
+				<td><b>Time</b></td><td><b>Sun</b></td><td><b>Mon</b></td><td><b>Tues</b></td><td><b>Wed</b></td><td><b>Thurs</b></td><td><b>Fri</b></td><td><b>Sat</b></td>
+			</tr>
+			{% for row in active_rotation_calendar %}
+			<tr>
+				<td>{{ row.time }}</td>
+				<td>{{ row.Sunday }}</td>
+				<td>{{ row.Monday }}</td>
+				<td>{{ row.Tuesday }}</td>
+				<td>{{ row.Wednesday }}</td>
+				<td>{{ row.Thursday }}</td>
+				<td>{{ row.Friday }}</td>
+				<td>{{ row.Saturday }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		<hr/><br/>
+
+	</body>
+</html>

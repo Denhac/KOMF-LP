@@ -302,7 +302,6 @@ def checkPassword():
 
 @app.route('/updateschedules', methods=['GET', 'POST'])
 def updateschedules():
-
     if not checkPassword():
         return redirect(url_for('main'))
 
@@ -311,7 +310,14 @@ def updateschedules():
         radioDj   = DenhacRadioDjDb()
         rows      = radioDj.getSchedules()
         schedules = radioDj.getVerifiedSchedules()
-        return render_template('updateschedules.html', rows = rows, schedules = schedules)
+        live_show_calendar = radioDj.getLiveShowCalendar()
+        live_show_calendar_comment = radioDj.getTableComment('komf_live_show_calendar')
+
+        return render_template('updateschedules.html',
+                               rows=rows,
+                               schedules=schedules,
+                               live_show_calendar=live_show_calendar,
+                               live_show_calendar_comment=live_show_calendar_comment)
 
     # Else if POST, then save the update and reload the form
     project     = ""
@@ -323,13 +329,11 @@ def updateschedules():
     if 'day' in request.form:
         day         = request.form['day']
 
-#    try:
     time_string = request.form['hour'] + ':' + request.form['minute']
-#    except KeyError:
-#        return DenhacJsonLibrary.ReplyWithError("Hour and Minute are required!")
+    show_length_string = request.form['showlengthhour'] + ':' + request.form['showlengthminute'] + ':00'
 
     radioDj = DenhacRadioDjDb()
-    radioDj.upsertSchedule(None, project, day, time_string)
+    radioDj.upsertSchedule(None, project, day, time_string, show_length_string)
     rows = radioDj.getSchedules()
     return redirect(url_for('updateschedules'))
 
@@ -522,3 +526,32 @@ def viewsongimportfailures():
         decodedrows.append(newRow)
 
     return render_template('songimportfailures.html', rows=decodedrows)
+
+@app.route('/managecalendars', methods=['GET'])
+def managecalendars():
+    if not checkPassword():
+        return redirect(url_for('main'))
+
+    radioDj = DenhacRadioDjDb()
+    consolidated_active_calendar = radioDj.getConsolidatedActiveCalendar()
+    consolidated_active_calendar_comment = radioDj.getViewComment('komf_consolidated_active_calendar')
+    active_live_show_calendar = radioDj.getActiveLiveShowCalendar()
+    active_live_show_calendar_comment = radioDj.getViewComment('komf_active_live_show_calendar')
+    active_prerecorded_show_calendar = radioDj.getActivePrerecordedShowCalendar()
+    active_prerecorded_show_calendar_comment = radioDj.getViewComment('komf_active_prerec_show_calendar')
+    active_rotation_calendar = radioDj.getActiveRotationCalendar()
+    active_rotation_calendar_comment = radioDj.getViewComment('komf_active_rotation_calendar')
+    live_show_calendar = radioDj.getLiveShowCalendar()
+    live_show_calendar_comment = radioDj.getTableComment('komf_live_show_calendar')
+
+    return render_template('managecalendars.html', consolidated_active_calendar=consolidated_active_calendar,
+                           consolidated_active_calendar_comment=consolidated_active_calendar_comment,
+                           active_live_show_calendar=active_live_show_calendar,
+                           active_live_show_calendar_comment=active_live_show_calendar_comment,
+                           active_prerecorded_show_calendar=active_prerecorded_show_calendar,
+                           active_prerecorded_show_calendar_comment=active_prerecorded_show_calendar_comment,
+                           active_rotation_calendar=active_rotation_calendar,
+                           active_rotation_calendar_comment=active_rotation_calendar_comment,
+                           live_show_calendar=live_show_calendar,
+                           live_show_calendar_comment=live_show_calendar_comment
+                           )

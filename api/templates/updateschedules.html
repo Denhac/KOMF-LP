@@ -1,12 +1,15 @@
 <!doctype html>
 <html>
-<title>Update Schedules</title>
+<title>Manage Scheduled Shows</title>
 
 <body>
+	<b>Manage Scheduled Shows</b>
+	<hr/><br/>
+
 	<b>Current Schedules:</b>
 	<table border="2">
 		<tr>
-			<td><b>Delete</b></td><td><b>Playlist ID</b></td><td><b>Project Name</b></td><td><b>Day of Week</b></td><td><b>Time</b></td>
+			<td><b>Delete</b></td><td><b>Playlist ID</b></td><td><b>Project Name</b></td><td><b>Day of Week</b></td><td><b>Time</b></td><td><b>Show Length</b></td>
 		</tr>
 		{% for row in rows %}
 		<tr>
@@ -15,6 +18,7 @@
 			<td>{{ row.project }}</td>
 			<td>{{ row.day }}</td>
 			<td>{{ row.time_string }}</td>
+			<td>{{ row.show_length }}</td>
 		</tr>
 		{% endfor %}
 	</table>
@@ -24,7 +28,7 @@
 	<form action="{{ url_for('updateschedules') }}" method="post">
 	<table border="1">
 		<tr>
-			<td><b>Project</b></td><td><b>Day of Week</b></td><td><b>Time</b></td>
+			<td><b>Project</b></td><td><b>Day of Week</b></td><td><b>Time</b></td><td><b>Show Length</b></td>
 		</tr>
 		<tr>
 			<td><input type="text" name="project"/></td>
@@ -74,11 +78,33 @@
 					<option value="45">45</option>
 				</select>
 			</td>
+			<td>
+				<select name="showlengthhour">
+					<option value="0">0</option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+				</select>
+				:
+				<select name="showlengthminute">
+					<option value="00">00</option>
+					<option value="15">15</option>
+					<option value="30">30</option>
+					<option value="45">45</option>
+				</select>
+				:00
+			</td>
 		</tr>
 	</table>
 		<input type="submit" value="Save"/>
 	</form>
-	<br/>
+	<hr/><br/>
 
 	<b>Radio DJ Event Schedule:</b>
 	<table border="2">
@@ -96,5 +122,30 @@
 		</tr>
 		{% endfor %}
 	</table>
+	<hr/><br/>
+
+	<b>Live Show Calendar</b><br/>
+	{{ live_show_calendar_comment }}<br/>
+	TODO: Make editable
+	<table border="2">
+		<tr>
+			<td><b>Time</b></td><td><b>Sun</b></td><td><b>Mon</b></td><td><b>Tues</b></td><td><b>Wed</b></td><td><b>Thurs</b></td><td><b>Fri</b></td><td><b>Sat</b></td>
+		</tr>
+		{% for row in live_show_calendar %}
+		<tr>
+			<td>{{ row.time }}</td>
+			<td>{{ row.Sunday }}</td>
+			<td>{{ row.Monday }}</td>
+			<td>{{ row.Tuesday }}</td>
+			<td>{{ row.Wednesday }}</td>
+			<td>{{ row.Thursday }}</td>
+			<td>{{ row.Friday }}</td>
+			<td>{{ row.Saturday }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+	<hr/><br/>
+
+
 </body>
 </html>

@@ -172,13 +172,13 @@ class DenhacRadioDjDb(DenhacDb):
         sql = "SELECT * FROM komf_scheduled_shows"
         return self.executeQueryGetAllRows(sql, None)
 
-    def upsertSchedule(self, playlist_id, project, day, time_string):
+    def upsertSchedule(self, playlist_id, project, day, time_string, show_length_string):
         if playlist_id:
-            sql = "CALL komf_upsert_komf_scheduled_shows(%s, %s, %s, %s);"
-            return self.executeQueryNoResult(sql, [playlist_id, project, day, time_string])
+            sql = "CALL komf_upsert_komf_scheduled_shows(%s, %s, %s, %s, %s);"
+            return self.executeQueryNoResult(sql, [playlist_id, project, day, time_string, show_length_string])
         else:
-            sql = "CALL komf_upsert_komf_scheduled_shows(null, %s, %s, %s);"
-            return self.executeQueryNoResult(sql, [project, day, time_string])
+            sql = "CALL komf_upsert_komf_scheduled_shows(null, %s, %s, %s, %s);"
+            return self.executeQueryNoResult(sql, [project, day, time_string, show_length_string])
 
     def deleteSchedule(self, playlist_id):
         sql = "DELETE FROM komf_scheduled_shows WHERE playlist_id = %s"
@@ -262,3 +262,39 @@ class DenhacRadioDjDb(DenhacDb):
     def getSongImportFailures(self):
         sql = "SELECT * FROM komf_song_import_failures"
         return self.executeQueryGetAllRows(sql, None)
+
+    def getConsolidatedActiveCalendar(self):
+        sql = "SELECT * FROM komf_consolidated_active_calendar"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getActiveLiveShowCalendar(self):
+        sql = "SELECT * FROM komf_active_live_show_calendar"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getActivePrerecordedShowCalendar(self):
+        sql = "SELECT * FROM komf_active_prerec_show_calendar"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getActiveRotationCalendar(self):
+        sql = "SELECT * FROM komf_active_rotation_calendar"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getLiveShowCalendar(self):
+        sql = "SELECT * FROM komf_live_show_calendar"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getViewComment(self, view_name):
+        sql = "SELECT comments FROM komf_views_comments WHERE view_name = %s"
+        rows = self.executeQueryGetAllRows(sql, [view_name])
+        if len(rows) == 0:
+            return ""
+        else:
+            return rows[0]['comments']
+
+    def getTableComment(self, table_name):
+        sql = "SELECT table_comment FROM information_schema.tables WHERE TABLE_NAME = %s"
+        rows = self.executeQueryGetAllRows(sql, [table_name])
+        if len(rows) == 0:
+            return ""
+        else:
+            return rows[0]['table_comment']

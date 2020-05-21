@@ -5,10 +5,11 @@
         <br/>Last Successful Import: {{ row.last_import_datetime }}
         <br/>Last Successful Maintenance/Events Update: {{ row.last_maintenance_datetime }}
         <br/>
-        <br/><a href={{ url_for('updateschedules') }}>Update Schedules</a>
-        <br/><a href={{ url_for('viewrotationschedule') }}>View Rotation Schedules</a>
+        <br/><a href={{ url_for('managecalendars') }}>Manage Calendars</a>
+        <br/><a href={{ url_for('updateschedules') }}>Manage Scheduled Shows</a>
+        <br/><a href={{ url_for('viewrotationschedule') }}>Manage Rotation</a>
         <br/><a href={{ url_for('manageinternalcontent') }}>Manage Internal Content</a>
-        <br/><a href={{ url_for('viewsongimportfailures') }}>View Song Import Failures</a>
+        <br/><a href={{ url_for('viewsongimportfailures') }}>Manage Automated Song Import</a>
         <br/>
         <br/><a href={{ url_for('logout') }}>Logout</a>
         <br/>
