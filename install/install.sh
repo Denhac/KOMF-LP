@@ -54,6 +54,9 @@ yes | sudo pip install --upgrade pip
 yes | sudo pip install --upgrade setuptools
 yes | sudo pip install flask flask-cors PyMySQL eyed3 gTTS urllib3
 
+# To fix a versioning issue causing wsgi failure
+yes | sudo pip install werkzeug==0.16.0
+
 ########################################################
 
 echo 'Installing ffmpeg/libmp3lame...'
