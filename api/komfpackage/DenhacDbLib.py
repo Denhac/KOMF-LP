@@ -197,7 +197,7 @@ class DenhacRadioDjDb(DenhacDb):
         return self.executeQueryNoResult(sql, [rotation_id])
 
     def getThemeBlocksForUserSelection(self):
-        sql = "SELECT * FROM subcategory WHERE ID <= 10"
+        sql = "SELECT * FROM rotations"
         return self.executeQueryGetAllRows(sql, None)
 
     def addRotationSchedule(self, RotationName, StartTime, ThemeBlockID, Days, KickoffTrackID):
