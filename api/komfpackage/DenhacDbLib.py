@@ -320,11 +320,11 @@ class DenhacRadioDjDb(DenhacDb):
         return self.executeQueryGetAllRows(sql, None)
 
     def getRotationRanking(self):
-        sql = "SELECT * FROM komf_rotation_ranking ORDER BY playWeight desc"
+        sql = "SELECT * FROM komf_rotation_ranking ORDER BY playWeight desc LIMIT 50"
         return self.executeQueryGetAllRows(sql, None)
 
     def getHitsRotationRanking(self):
-        sql = "SELECT * FROM komf_hits_rotation_ranking ORDER BY playWeight desc"
+        sql = "SELECT * FROM komf_hits_rotation_ranking ORDER BY playWeight desc LIMIT 50"
         return self.executeQueryGetAllRows(sql, None)
 
     def saveHitsRotationCriteria(self, min_bayesian, avg_bayesian, days_new, new_weight, days_old, old_weight,
