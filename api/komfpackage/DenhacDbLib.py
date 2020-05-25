@@ -298,3 +298,47 @@ class DenhacRadioDjDb(DenhacDb):
             return ""
         else:
             return rows[0]['table_comment']
+
+    def deleteLiveShowCalendar(self, time):
+        sql = "DELETE FROM komf_live_show_calendar WHERE time = %s"
+        return self.executeQueryNoResult(sql, [time])
+
+    def addLiveShowCalendar(self, time, sunday, monday, tuesday, wednesday, thursday, friday, saturday):
+        sql = "INSERT INTO komf_live_show_calendar (time, Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+        return self.executeQueryNoResult(sql, [time, sunday, monday, tuesday, wednesday, thursday, friday, saturday])
+
+    def getHitsRotationCriteria(self):
+        sql = "SELECT * FROM komf_hits_rotation_criteria"
+        return self.executeQueryGetAllRows(sql, None)[0]
+
+    def getRotationCriteria(self):
+        sql = "SELECT * FROM komf_rotation_criteria"
+        return self.executeQueryGetAllRows(sql, None)[0]
+
+    def getContentHoursPerWeek(self):
+        sql = "SELECT * FROM komf_content_hours_per_week"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getRotationRanking(self):
+        sql = "SELECT * FROM komf_rotation_ranking ORDER BY playWeight desc"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def getHitsRotationRanking(self):
+        sql = "SELECT * FROM komf_hits_rotation_ranking ORDER BY playWeight desc"
+        return self.executeQueryGetAllRows(sql, None)
+
+    def saveHitsRotationCriteria(self, min_bayesian, avg_bayesian, days_new, new_weight, days_old, old_weight,
+                                 bays_if_zero, no_repeat_hours):
+        sql = "UPDATE komf_hits_rotation_criteria " \
+              "SET min_bayesian = %s, avg_bayesian = %s, days_new = %s, new_weight = %s, " \
+              "days_old = %s, old_weight = %s, bays_if_zero = %s, no_repeat_hours = %s" \
+              "WHERE id = 0"
+        return self.executeQueryNoResult(sql, [min_bayesian, avg_bayesian, days_new, new_weight, days_old, old_weight, bays_if_zero, no_repeat_hours])
+
+    def saveRotationCriteria(self, min_bayesian, avg_bayesian, days_new, new_weight, days_old, old_weight, bays_if_zero,
+                             no_repeat_hours):
+        sql = "UPDATE komf_rotation_criteria " \
+              "SET min_bayesian = %s, avg_bayesian = %s, days_new = %s, new_weight = %s, " \
+              "days_old = %s, old_weight = %s, bays_if_zero = %s, no_repeat_hours = %s" \
+              "WHERE id = 0"
+        return self.executeQueryNoResult(sql, [min_bayesian, avg_bayesian, days_new, new_weight, days_old, old_weight, bays_if_zero, no_repeat_hours])

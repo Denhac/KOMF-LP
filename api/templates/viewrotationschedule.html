@@ -6,7 +6,8 @@
 	<b>Manage Rotation</b>
 	<hr/><br/>
 
-	<b>Current Rotation Schedules:</b>
+	<b>Current Rotation Schedules:</b><br/>
+	{{ komf_rotation_schedule_comment }}<br/>
 	<table border="2">
 		<tr>
 			<td><b>Delete</b></td><td><b>ID</b></td><td><b>Rotation Name</b></td><td><b>Start Time</b></td><td><b>ThemeBlock</b></td><td><b>Days</b></td><td><b>Kickoff Track ID</b></td>
@@ -88,9 +89,10 @@
 	</table>
 		<input type="submit" value="Save"/>
 	</form>
-	<br/>
+	<hr/><br/>
 
-	<b>Rotation Verifications:</b>
+	<b>Rotation Verifications:</b><br/>
+	{{ komf_rotation_verification_comment }}<br/>
 	<table border="2">
 		<tr>
 			<td><b>Name</b></td><td><b>Day</b></td><td><b>Hours</b></td><td><b>Min-Sec</b></td><td><b>Enabled</b></td><td><b>Data</b></td>
@@ -106,6 +108,116 @@
 		</tr>
 		{% endfor %}
 	</table>
+	<hr/><br/>
+
+	<b>komf_hits_rotation_criteria</b><br/>
+	{{ komf_hits_rotation_criteria_comment }}<br/>
+	<form action="{{ url_for('savehitsrotationcriteria') }}" method="post">
+	<table border="2">
+		<tr>
+			<td><b>min_bayesian</b></td><td><b>avg_bayesian</b></td><td><b>days_new</b></td><td><b>new_weight</b></td><td><b>days_old</b></td><td><b>old_weight</b></td><td><b>bays_if_zero</b></td><td><b>no_repeat_hours</b></td>
+		</tr>
+		<tr>
+			<td><input type="text" name="min_bayesian" value="{{ hits_rotation_criteria.min_bayesian }}"/></td>
+			<td><input type="text" name="avg_bayesian" value="{{ hits_rotation_criteria.avg_bayesian }}"/></td>
+			<td><input type="text" name="days_new" value="{{ hits_rotation_criteria.days_new }}"/></td>
+			<td><input type="text" name="new_weight" value="{{ hits_rotation_criteria.new_weight }}"/></td>
+			<td><input type="text" name="days_old" value="{{ hits_rotation_criteria.days_old }}"/></td>
+			<td><input type="text" name="old_weight" value="{{ hits_rotation_criteria.old_weight }}"/></td>
+			<td><input type="text" name="bays_if_zero" value="{{ hits_rotation_criteria.bays_if_zero }}"/></td>
+			<td><input type="text" name="no_repeat_hours" value="{{ hits_rotation_criteria.no_repeat_hours }}"/></td>
+		</tr>
+	</table>
+		<input type="submit" value="Save"/>
+	</form>
+	<hr/><br/>
+
+	<b>komf_rotation_criteria</b><br/>
+	{{ komf_rotation_criteria_comment }}<br/>
+	<form action="{{ url_for('saverotationcriteria') }}" method="post">
+	<table border="2">
+		<tr>
+			<td><b>min_bayesian</b></td><td><b>avg_bayesian</b></td><td><b>days_new</b></td><td><b>new_weight</b></td><td><b>days_old</b></td><td><b>old_weight</b></td><td><b>bays_if_zero</b></td><td><b>no_repeat_hours</b></td>
+		</tr>
+		<tr>
+			<td><input type="text" name="min_bayesian" value="{{ rotation_criteria.min_bayesian }}"/></td>
+			<td><input type="text" name="avg_bayesian" value="{{ rotation_criteria.avg_bayesian }}"/></td>
+			<td><input type="text" name="days_new" value="{{ rotation_criteria.days_new }}"/></td>
+			<td><input type="text" name="new_weight" value="{{ rotation_criteria.new_weight }}"/></td>
+			<td><input type="text" name="days_old" value="{{ rotation_criteria.days_old }}"/></td>
+			<td><input type="text" name="old_weight" value="{{ rotation_criteria.old_weight }}"/></td>
+			<td><input type="text" name="bays_if_zero" value="{{ rotation_criteria.bays_if_zero }}"/></td>
+			<td><input type="text" name="no_repeat_hours" value="{{ rotation_criteria.no_repeat_hours }}"/></td>
+		</tr>
+	</table>
+		<input type="submit" value="Save"/>
+	</form>
+	<hr/><br/>
+
+	<b>komf_content_hours_per_week</b><br/>
+	{{ komf_content_hours_per_week_comment }}<br/>
+	<table border="2">
+		<tr>
+			<td><b>id_subcat</b></td><td><b>name</b></td><td><b>hours_of_content</b></td><td><b>total</b></td><td><b>percentage</b></td><td><b>hours_per_week</b></td>
+		</tr>
+		{% for row in content_hours_per_week %}
+		<tr>
+			<td>{{ row.id_subcat }}</td>
+			<td>{{ row.name }}</td>
+			<td>{{ row.hoursOfContent }}</td>
+			<td>{{ row.total }}</td>
+			<td>{{ row.percentage }}</td>
+			<td>{{ row.hoursPerWeek }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+	<hr/><br/>
+
+	<b>komf_rotation_ranking</b><br/>
+	{{ komf_rotation_ranking_comment }}<br/>
+	<table border="2">
+		<tr>
+			<td><b>ID</b></td><td><b>title</b></td><td><b>CorrectedBayesian</b></td><td><b>mean</b></td><td><b>post_date</b></td><td><b>date_played</b></td><td><b>daysOld</b></td><td><b>newFlag</b></td><td><b>oldFlag</b></td><td><b>playWeight</b></td>
+		</tr>
+		{% for row in rotation_ranking %}
+		<tr>
+			<td>{{ row.ID }}</td>
+			<td>{{ row.title.decode('utf-8') }}</td>
+			<td>{{ row.CorrectedBayesian }}</td>
+			<td>{{ row.mean }}</td>
+			<td>{{ row.post_date }}</td>
+			<td>{{ row.date_played }}</td>
+			<td>{{ row.daysOld }}</td>
+			<td>{{ row.newFlag }}</td>
+			<td>{{ row.oldFlag }}</td>
+			<td>{{ row.playWeight }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+	<hr/><br/>
+
+	<b>komf_hits_rotation_ranking</b><br/>
+	{{ komf_hits_rotation_ranking_comment }}<br/>
+	<table border="2">
+		<tr>
+			<td><b>ID</b></td><td><b>title</b></td><td><b>CorrectedBayesian</b></td><td><b>mean</b></td><td><b>post_date</b></td><td><b>date_played</b></td><td><b>daysOld</b></td><td><b>newFlag</b></td><td><b>oldFlag</b></td><td><b>playWeight</b></td>
+		</tr>
+		{% for row in hits_rotation_ranking %}
+		<tr>
+			<td>{{ row.ID }}</td>
+			<td>{{ row.title.decode('utf-8') }}</td>
+			<td>{{ row.CorrectedBayesian }}</td>
+			<td>{{ row.mean }}</td>
+			<td>{{ row.post_date }}</td>
+			<td>{{ row.date_played }}</td>
+			<td>{{ row.daysOld }}</td>
+			<td>{{ row.newFlag }}</td>
+			<td>{{ row.oldFlag }}</td>
+			<td>{{ row.playWeight }}</td>
+		</tr>
+		{% endfor %}
+	</table>
+	<hr/><br/>
 
 </body>
 </html>

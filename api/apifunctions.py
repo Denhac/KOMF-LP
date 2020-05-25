@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # Python includes
 import base64, json, logging, os, sys, urllib2
 from threading import Thread
@@ -351,12 +353,36 @@ def viewrotationschedule():
     if not checkPassword():
         return redirect(url_for('main'))
 
-    radioDj       = DenhacRadioDjDb()
-    rows          = radioDj.getRotationSchedules()
-    themeblocks   = radioDj.getThemeBlocksForUserSelection()
+    radioDj = DenhacRadioDjDb()
+    rows = radioDj.getRotationSchedules()
+    themeblocks = radioDj.getThemeBlocksForUserSelection()
     verifications = radioDj.getRotationVerification()
 
-    return render_template('viewrotationschedule.html', rows = rows, themeblocks = themeblocks, verifications = verifications)
+    hits_rotation_criteria = radioDj.getHitsRotationCriteria()
+    rotation_criteria = radioDj.getRotationCriteria()
+    content_hours_per_week = radioDj.getContentHoursPerWeek()
+    rotation_ranking = radioDj.getRotationRanking()
+    hits_rotation_ranking = radioDj.getHitsRotationRanking()
+
+    komf_rotation_schedule_comment = radioDj.getTableComment('komf_rotation_schedule')
+    komf_rotation_verification_comment = radioDj.getTableComment('komf_rotation_verification')
+    komf_hits_rotation_criteria_comment = radioDj.getTableComment('komf_hits_rotation_criteria')
+    komf_rotation_criteria_comment = radioDj.getTableComment('komf_rotation_criteria')
+    komf_content_hours_per_week_comment = radioDj.getViewComment('komf_content_hours_per_week')
+    komf_rotation_ranking_comment = radioDj.getViewComment('komf_rotation_ranking')
+    komf_hits_rotation_ranking_comment = radioDj.getViewComment('komf_hits_rotation_ranking')
+
+    return render_template('viewrotationschedule.html', rows=rows, themeblocks=themeblocks, verifications=verifications,
+                           komf_rotation_schedule_comment=komf_rotation_schedule_comment,
+                           komf_rotation_verification_comment=komf_rotation_verification_comment,
+                           hits_rotation_criteria=hits_rotation_criteria, rotation_criteria=rotation_criteria,
+                           content_hours_per_week=content_hours_per_week, rotation_ranking=rotation_ranking,
+                           hits_rotation_ranking=hits_rotation_ranking,
+                           komf_hits_rotation_criteria_comment=komf_hits_rotation_criteria_comment,
+                           komf_rotation_criteria_comment=komf_rotation_criteria_comment,
+                           komf_content_hours_per_week_comment=komf_content_hours_per_week_comment,
+                           komf_rotation_ranking_comment=komf_rotation_ranking_comment,
+                           komf_hits_rotation_ranking_comment=komf_hits_rotation_ranking_comment)
 
 @app.route('/deleterotationschedule/<rotation_id>', methods=['GET'])
 def deleterotationschedule(rotation_id):
@@ -555,3 +581,63 @@ def managecalendars():
                            live_show_calendar=live_show_calendar,
                            live_show_calendar_comment=live_show_calendar_comment
                            )
+
+@app.route('/deleteliveshowcalendar/<time>', methods=['GET'])
+def deleteliveshowcalendar(time):
+    if not checkPassword():
+        return redirect(url_for('main'))
+
+    radioDj = DenhacRadioDjDb()
+    radioDj.deleteLiveShowCalendar(time)
+    return redirect(url_for('updateschedules'))
+
+@app.route('/addliveshowcalendar', methods=['POST'])
+def addliveshowcalendar():
+    if not checkPassword():
+        return redirect(url_for('main'))
+
+    time = request.form['liveshowcalendarhour'] + ':' + request.form['liveshowcalendarminute'] + ':00'
+    sunday = monday = tuesday = wednesday = thursday = friday = saturday = "None"
+
+    if 'sunday' in request.form and request.form['sunday']:
+        sunday = request.form['sunday']
+    if 'monday' in request.form and request.form['monday']:
+        monday = request.form['monday']
+    if 'tuesday' in request.form and request.form['tuesday']:
+        tuesday = request.form['tuesday']
+    if 'wednesday' in request.form and request.form['wednesday']:
+        wednesday = request.form['wednesday']
+    if 'thursday' in request.form and request.form['thursday']:
+        thursday = request.form['thursday']
+    if 'friday' in request.form and request.form['friday']:
+        friday = request.form['friday']
+    if 'saturday' in request.form and request.form['saturday']:
+        saturday = request.form['saturday']
+
+    radioDj = DenhacRadioDjDb()
+    radioDj.addLiveShowCalendar(time, sunday, monday, tuesday, wednesday, thursday, friday, saturday)
+    return redirect(url_for('updateschedules'))
+
+@app.route('/savehitsrotationcriteria', methods=['POST'])
+def savehitsrotationcriteria():
+    if not checkPassword():
+        return redirect(url_for('main'))
+
+    radioDj = DenhacRadioDjDb()
+    radioDj.saveHitsRotationCriteria(request.form['min_bayesian'], request.form['avg_bayesian'],
+                                     request.form['days_new'], request.form['new_weight'], request.form['days_old'],
+                                     request.form['old_weight'], request.form['bays_if_zero'],
+                                     request.form['no_repeat_hours'])
+    return redirect(url_for('viewrotationschedule'))
+
+@app.route('/saverotationcriteria', methods=['POST'])
+def saverotationcriteria():
+    if not checkPassword():
+        return redirect(url_for('main'))
+
+    radioDj = DenhacRadioDjDb()
+    radioDj.saveRotationCriteria(request.form['min_bayesian'], request.form['avg_bayesian'],
+                                 request.form['days_new'], request.form['new_weight'], request.form['days_old'],
+                                 request.form['old_weight'], request.form['bays_if_zero'],
+                                 request.form['no_repeat_hours'])
+    return redirect(url_for('viewrotationschedule'))

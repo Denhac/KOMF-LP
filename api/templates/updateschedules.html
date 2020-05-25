@@ -124,15 +124,15 @@
 	</table>
 	<hr/><br/>
 
-	<b>Live Show Calendar</b><br/>
+	<b>Live Show Calendar</b>
 	{{ live_show_calendar_comment }}<br/>
-	TODO: Make editable
 	<table border="2">
 		<tr>
-			<td><b>Time</b></td><td><b>Sun</b></td><td><b>Mon</b></td><td><b>Tues</b></td><td><b>Wed</b></td><td><b>Thurs</b></td><td><b>Fri</b></td><td><b>Sat</b></td>
+			<td><b>Delete</b></td><td><b>Time</b></td><td><b>Sun</b></td><td><b>Mon</b></td><td><b>Tues</b></td><td><b>Wed</b></td><td><b>Thurs</b></td><td><b>Fri</b></td><td><b>Sat</b></td>
 		</tr>
 		{% for row in live_show_calendar %}
 		<tr>
+			<td><a href={{ url_for('deleteliveshowcalendar', time=row.time) }}>X</a></td>
 			<td>{{ row.time }}</td>
 			<td>{{ row.Sunday }}</td>
 			<td>{{ row.Monday }}</td>
@@ -143,9 +143,61 @@
 			<td>{{ row.Saturday }}</td>
 		</tr>
 		{% endfor %}
+	</table><br/>
+	<br/>
+	<b>Add New Live Show Calendar Row:</b>
+	<form action="{{ url_for('addliveshowcalendar') }}" method="post">
+	<table border="1">
+		<tr>
+			<td><b>Time</b></td><td><b>Sun</b></td><td><b>Mon</b></td><td><b>Tues</b></td><td><b>Wed</b></td><td><b>Thurs</b></td><td><b>Fri</b></td><td><b>Sat</b></td>
+		</tr>
+		<tr>
+			<td>
+				<select name="liveshowcalendarhour">
+					<option value="0">0</option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+					<option value="11">11</option>
+					<option value="12">12</option>
+					<option value="13">13</option>
+					<option value="14">14</option>
+					<option value="15">15</option>
+					<option value="16">16</option>
+					<option value="17">17</option>
+					<option value="18">18</option>
+					<option value="19">19</option>
+					<option value="20">20</option>
+					<option value="21">21</option>
+					<option value="22">22</option>
+					<option value="23">23</option>
+				</select>
+				:
+				<select name="liveshowcalendarminute">
+					<option value="00">00</option>
+					<option value="30">30</option>
+				</select>
+				:00
+			</td>
+			<td><input type="text" name="sunday"/></td>
+			<td><input type="text" name="monday"/></td>
+			<td><input type="text" name="tuesday"/></td>
+			<td><input type="text" name="wednesday"/></td>
+			<td><input type="text" name="thursday"/></td>
+			<td><input type="text" name="friday"/></td>
+			<td><input type="text" name="saturday"/></td>
+		</tr>
 	</table>
+		<input type="submit" value="Save"/>
+	</form>
 	<hr/><br/>
-
 
 </body>
 </html>
