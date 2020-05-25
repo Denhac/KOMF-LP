@@ -105,7 +105,7 @@ def logtester():
 # The empty endpoint shows you the login page
 @app.route('/')
 def main():
-    return render_template('login.html')
+    return render_template('login.html', envproperties=envproperties)
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -141,7 +141,7 @@ def internalpages():
 
     radioDj = DenhacRadioDjDb()
     row = radioDj.getLastImportDatetime()[0]
-    return render_template('internalpages.html', row=row)
+    return render_template('internalpages.html', row=row, envproperties=envproperties)
 
 @app.route('/logout', methods=['GET'])
 def logout():
@@ -288,7 +288,7 @@ def themeblocktotals():
     enableds            = radioDj.getEnabledTotals()
     unknowns            = radioDj.getUnknownSongs()
 
-    return render_template('themeblocktotals.html', themeblocksEnabled = themeblocksEnabled, themeblocksDisabled = themeblocksDisabled, genresEnabled = genresEnabled, genresDisabled = genresDisabled, enableds=enableds, unknowns=unknowns)
+    return render_template('themeblocktotals.html', themeblocksEnabled = themeblocksEnabled, themeblocksDisabled = themeblocksDisabled, genresEnabled = genresEnabled, genresDisabled = genresDisabled, enableds=enableds, unknowns=unknowns, envproperties=envproperties)
 
 def checkPassword():
 
@@ -319,7 +319,7 @@ def updateschedules():
                                rows=rows,
                                schedules=schedules,
                                live_show_calendar=live_show_calendar,
-                               live_show_calendar_comment=live_show_calendar_comment)
+                               live_show_calendar_comment=live_show_calendar_comment, envproperties=envproperties)
 
     # Else if POST, then save the update and reload the form
     project     = ""
@@ -382,7 +382,8 @@ def viewrotationschedule():
                            komf_rotation_criteria_comment=komf_rotation_criteria_comment,
                            komf_content_hours_per_week_comment=komf_content_hours_per_week_comment,
                            komf_rotation_ranking_comment=komf_rotation_ranking_comment,
-                           komf_hits_rotation_ranking_comment=komf_hits_rotation_ranking_comment)
+                           komf_hits_rotation_ranking_comment=komf_hits_rotation_ranking_comment,
+                           envproperties=envproperties)
 
 @app.route('/deleterotationschedule/<rotation_id>', methods=['GET'])
 def deleterotationschedule(rotation_id):
@@ -426,7 +427,7 @@ def manageinternalcontent():
 
     radioDj = DenhacRadioDjDb()
     tracks  = radioDj.getKomfTrackSummary()
-    return render_template('manageinternalcontent.html', tracks = tracks)
+    return render_template('manageinternalcontent.html', tracks=tracks, envproperties=envproperties)
 
 
 @app.route('/nowplaying', methods=['POST'])
@@ -551,7 +552,7 @@ def viewsongimportfailures():
         }
         decodedrows.append(newRow)
 
-    return render_template('songimportfailures.html', rows=decodedrows)
+    return render_template('songimportfailures.html', rows=decodedrows, envproperties=envproperties)
 
 @app.route('/managecalendars', methods=['GET'])
 def managecalendars():
@@ -579,7 +580,7 @@ def managecalendars():
                            active_rotation_calendar=active_rotation_calendar,
                            active_rotation_calendar_comment=active_rotation_calendar_comment,
                            live_show_calendar=live_show_calendar,
-                           live_show_calendar_comment=live_show_calendar_comment
+                           live_show_calendar_comment=live_show_calendar_comment, envproperties=envproperties
                            )
 
 @app.route('/deleteliveshowcalendar/<time>', methods=['GET'])
@@ -641,3 +642,21 @@ def saverotationcriteria():
                                  request.form['old_weight'], request.form['bays_if_zero'],
                                  request.form['no_repeat_hours'])
     return redirect(url_for('viewrotationschedule'))
+
+@app.route('/viewserverapilogs', methods=['GET'])
+def viewserverapilogs():
+    if not checkPassword():
+        return redirect(url_for('main'))
+
+    with open(envproperties.API_LOG_FILE) as file:
+        data = file.read()
+        return render_template('viewserverapilogs.html', logs=data, envproperties=envproperties)
+
+@app.route('/viewserverjoblogs', methods=['GET'])
+def viewserverjoblogs():
+    if not checkPassword():
+        return redirect(url_for('main'))
+
+    with open(envproperties.IMPORT_LOG_FILE) as file:
+        data = file.read()
+        return render_template('viewserverjoblogs.html', logs=data, envproperties=envproperties)
