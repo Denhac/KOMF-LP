@@ -314,12 +314,16 @@ def updateschedules():
         schedules = radioDj.getVerifiedSchedules()
         live_show_calendar = radioDj.getLiveShowCalendar()
         live_show_calendar_comment = radioDj.getTableComment('komf_live_show_calendar')
+        komf_scheduled_shows_comment = radioDj.getTableComment('komf_scheduled_shows')
+        komf_scheduled_show_verification_comment = radioDj.getViewComment('komf_scheduled_show_verification')
 
         return render_template('updateschedules.html',
                                rows=rows,
                                schedules=schedules,
                                live_show_calendar=live_show_calendar,
-                               live_show_calendar_comment=live_show_calendar_comment, envproperties=envproperties)
+                               live_show_calendar_comment=live_show_calendar_comment, envproperties=envproperties,
+                               komf_scheduled_shows_comment=komf_scheduled_shows_comment,
+                               komf_scheduled_show_verification_comment=komf_scheduled_show_verification_comment)
 
     # Else if POST, then save the update and reload the form
     project     = ""
@@ -426,8 +430,11 @@ def manageinternalcontent():
         return redirect(url_for('main'))
 
     radioDj = DenhacRadioDjDb()
-    tracks  = radioDj.getKomfTrackSummary()
-    return render_template('manageinternalcontent.html', tracks=tracks, envproperties=envproperties)
+    tracks = radioDj.getKomfTrackSummary()
+    komf_track_summary_comment = radioDj.getViewComment('komf_track_summary')
+
+    return render_template('manageinternalcontent.html', tracks=tracks, envproperties=envproperties,
+                           komf_track_summary_comment=komf_track_summary_comment)
 
 
 @app.route('/nowplaying', methods=['POST'])
