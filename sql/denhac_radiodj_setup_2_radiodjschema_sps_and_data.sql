@@ -452,6 +452,8 @@ CREATE TABLE `komf_song_extended` (
   `mean` float NOT NULL,
   `explicit` tinyint(1) NOT NULL,
   `post_date` date NULL,
+  `album_art` VARCHAR(1024) NULL,
+  `show_link` VARCHAR(1024) NULL,
   PRIMARY KEY (`song_ID`),
   UNIQUE KEY `song_ID_UNIQUE` (`song_ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='This is a custom table to capture OMF "Vote!" and "Baysian" scores for each song.';
@@ -991,7 +993,9 @@ CREATE DEFINER=`radiodj`@`%` PROCEDURE `komf_upsert_song_extended`(
 							i_bayesian	float,
 							i_mean		float,
 							i_explicit	tinyint(1),
-							i_post_date date
+							i_post_date date,
+							i_album_art VARCHAR(1024),
+							i_show_link VARCHAR(1024)
 )
 BEGIN
 	INSERT INTO `radiodj`.`komf_song_extended`
@@ -1000,20 +1004,26 @@ BEGIN
 	`bayesian`,
 	`mean`,
 	`explicit`,
-	`post_date`
+	`post_date`,
+	`album_art`,
+	`show_link`
 	)
 	VALUES (
 	i_song_id,
 	i_bayesian,
 	i_mean,
 	i_explicit,
-	i_post_date
+	i_post_date,
+	i_album_art,
+	i_show_link
 	)
 	ON DUPLICATE KEY UPDATE
 		`bayesian`  = i_bayesian,
 		`mean`      = i_mean,
 		`explicit`  = i_explicit,
-		`post_date` = i_post_date
+		`post_date` = i_post_date,
+		`album_art` = i_album_art,
+		`show_link` = i_show_link
         ;
 END ;;
 DELIMITER ;

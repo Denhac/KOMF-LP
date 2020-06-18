@@ -68,6 +68,7 @@ session_key         = 'sessionkey'
 # URLs to receive metadata updates as songs rotate
 send_to_radiorethink = True
 radiorethink_url = 'http://tempuri.org'
+playlist_service_token = "abcdefg"
 
 send_to_icecast = True
 icecast_url = 'http://tempuri.org'

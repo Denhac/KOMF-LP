@@ -91,9 +91,9 @@ class DenhacRadioDjDb(DenhacDb):
         rows = self.executeQueryGetAllRows(sql, [path])
         return rows[0]
 
-    def setSongExtended(self, song_id, bayesian, mean, explicit, post_date):
-        sql = "CALL `komf_upsert_song_extended`(%s,%s,%s,%s,%s)"
-        self.executeQueryNoResult(sql, [song_id, bayesian, mean, explicit, post_date])
+    def setSongExtended(self, song_id, bayesian, mean, explicit, post_date, album_art, song_link):
+        sql = "CALL `komf_upsert_song_extended`(%s,%s,%s,%s,%s,%s,%s)"
+        self.executeQueryNoResult(sql, [song_id, bayesian, mean, explicit, post_date, album_art, song_link])
 
     def deleteSong(self, path):
         sql = "CALL `komf_delete_song`(%s)"
@@ -189,7 +189,7 @@ class DenhacRadioDjDb(DenhacDb):
         return self.executeQueryGetAllRows(sql, None)
 
     def getRotationSchedules(self):
-        sql = "select a.*, b.name from komf_rotation_schedule a inner join subcategory b where b.ID = a.ThemeBlockID"
+        sql = "select a.*, b.name from komf_rotation_schedule a inner join rotations b ON b.ID = a.ThemeBlockID"
         return self.executeQueryGetAllRows(sql, None)
 
     def deleteRotationSchedule(self, rotation_id):
@@ -342,3 +342,10 @@ class DenhacRadioDjDb(DenhacDb):
               "days_old = %s, old_weight = %s, bays_if_zero = %s, no_repeat_hours = %s" \
               "WHERE id = 0"
         return self.executeQueryNoResult(sql, [min_bayesian, avg_bayesian, days_new, new_weight, days_old, old_weight, bays_if_zero, no_repeat_hours])
+
+    def getSongExtended(self, song_id):
+        sql = "SELECT * FROM komf_song_extended WHERE song_ID = %s"
+        rows = self.executeQueryGetAllRows(sql, [song_id])
+        if len(rows) > 0:
+            return rows[0]
+        return {}

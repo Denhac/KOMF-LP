@@ -238,9 +238,26 @@ class RadioSongLib:
         else:
             metadata['mean'] = float(metadata['mean'])
 
+        if 'Album Cover' in row:
+            metadata['albumCover'] = str(row['Album Cover'])
+        elif '"Album Cover"' in row:
+            metadata['albumCover'] = str(row['"Album Cover"'])
+        elif '\"Album Cover\"' in row:
+            metadata['albumCover'] = str(row['\"Album Cover\"'])
 
-        # Additional columns currently in the csv, but not in the mapping:
-        # ^@"Album Cover"^@, "Logo", "Link"
+        if 'Link' in row:
+            metadata['link'] = str(row['Link'])
+        elif '"Link"' in row:
+            metadata['link'] = str(row['"Link"'])
+        elif '\"Link\"' in row:
+            metadata['link'] = str(row['\"Link\"'])
+
+        if 'Logo' in row:
+            metadata['logo'] = str(row['Logo'])
+        elif '"Logo"' in row:
+            metadata['logo'] = str(row['"Logo"'])
+        elif '\"Logo\"' in row:
+            metadata['logo'] = str(row['\"Logo\"'])
 
         # Set year to the current year at the time of import, TODO - until we can get this value from the csv
         metadata['year'] = datetime.datetime.now().year
@@ -470,7 +487,8 @@ class RadioSongLib:
 
         # Write extended data - stuff from the audio.csv that does not have a default place in RadioDJ
         row = self.radioDj.getSongByPath(metadata['frontendPath'])
-        self.radioDj.setSongExtended(row['ID'], metadata['bayesian'], metadata['mean'], indecent, metadata['postdate'])
+        self.radioDj.setSongExtended(row['ID'], metadata['bayesian'], metadata['mean'], indecent, metadata['postdate'],
+                                     metadata['albumCover'], metadata['link'])
 
         # Outro files always exist by this point now
         self.radioDj.upsertSongs(metadata['outroFrontendPath'],

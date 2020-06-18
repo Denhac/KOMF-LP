@@ -448,7 +448,7 @@ def nowplaying():
 
     # Ignore notifications for Outros
     if request.form['track'].endswith('- OUTRO'):
-        return JsonTools.Reply(dict(msg = "Success"))
+        return JsonTools.Reply(dict(msg="Success"))
 
     # Start one background worker for each target that wants to receive a notification
     # (This way RadioDJ doesn't have to wait on a response if any remote system has any issues; it just rotates and continues.)
@@ -460,14 +460,17 @@ def nowplaying():
         thread2 = Thread(target=background_call_icecast, args=[request.form])
         thread2.start()
 
-    return JsonTools.Reply(dict(msg = "Success"))
+    return JsonTools.Reply(dict(msg="Success"))
 
 
 def background_call_radiorethink(vars):
     url = envproperties.radiorethink_url
 
+    radioDj = DenhacRadioDjDb()
+    extended_info = radioDj.getSongExtended(vars['songID'])
+
     if 'playlistServiceToken' in vars:
-        url += "&playlistServiceToken=v3hamjBtzwYcgJ7u"
+        url += "&playlistServiceToken=" + envproperties.playlist_service_token
     if 'artist' in vars:
         url += "&artist=" + urllib2.quote(vars['artist'])
     if 'track' in vars:
@@ -486,6 +489,10 @@ def background_call_radiorethink(vars):
         url += "&showName=" + urllib2.quote(vars['showName'])
 #    if 'showHost' in vars:
 #        url += "&showHost="
+    if 'album_art' in extended_info and len(extended_info['album_art']) > 0:
+        url += "&trackImage=" + urllib2.quote(extended_info['album_art'], '')
+    if 'show_link' in extended_info and len(extended_info['show_link']) > 0:
+        url += "&detailUrl=" + urllib2.quote(extended_info['show_link'], '')
 
     try:
         app.logger.error("Calling RadioRethink URL: " + url)
