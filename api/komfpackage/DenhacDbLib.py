@@ -349,3 +349,10 @@ class DenhacRadioDjDb(DenhacDb):
         if len(rows) > 0:
             return rows[0]
         return {}
+
+    def getSongById(self, song_id):
+        sql = "SELECT * FROM songs WHERE ID = %s"
+        rows = self.executeQueryGetAllRows(sql, [song_id])
+        if len(rows) > 0:
+            return rows[0]
+        return {}

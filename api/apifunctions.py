@@ -80,12 +80,12 @@ def internal_server_error(e):
 # Hello world tester
 @app.route("/helloworld")
 def helloworld():
-    return JsonTools.Reply(dict(msg = "Hello, cruel world!"))
+    return JsonTools.Reply(dict(msg="Hello, cruel world!"))
 
 # Error tester
 @app.route("/errortester")
 def errortester():
-    raise InternalServerErrorException(error = "DOH! You screwed up!")
+    raise InternalServerErrorException(error="DOH! You screwed up!")
 
 # Generic exception tester
 @app.route("/exceptiontester")
@@ -449,6 +449,16 @@ def nowplaying():
     # Ignore notifications for Outros
     if request.form['track'].endswith('- OUTRO'):
         return JsonTools.Reply(dict(msg="Success"))
+
+    # https://github.com/Denhac/KOMF-LP/issues/23
+    # Ignore anything with subcategory > 10
+    radioDj = DenhacRadioDjDb()
+    song_info = radioDj.getSongById(request.form['songID'])
+    subcategory_id = song_info['id_subcat']
+    if subcategory_id > 10:
+        app.logger.error(msg="Subcategory is %s. Ignoring for rotation purposes." % subcategory_id)
+        return JsonTools.Reply(dict(msg="Success"))
+    # End #23
 
     # Start one background worker for each target that wants to receive a notification
     # (This way RadioDJ doesn't have to wait on a response if any remote system has any issues; it just rotates and continues.)
