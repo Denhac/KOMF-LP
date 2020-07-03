@@ -2,6 +2,7 @@
 
 # Python includes
 import base64, json, logging, os, sys, urllib2
+from datetime import datetime
 from threading import Thread
 
 # Flask and other third-party includes
@@ -9,13 +10,15 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask, request, session, render_template, redirect, url_for, send_from_directory
 from werkzeug import secure_filename, check_password_hash
 #from flask_cors import CORS, cross_origin
+import eyed3
 
 # Our own includes
 import envproperties
 from DenhacDbLib import DenhacDb, DenhacRadioDjDb
-from DenhacJsonLib import JsonTools
 from DenhacErrorLib import *
 from DenhacEmailLibrary import *
+from DenhacJsonLib import JsonTools
+from DenhacRadioSongLib import RadioSongLib
 
 # Start 'er up
 app = Flask(__name__)
@@ -56,13 +59,13 @@ def bad_request_error(e):
 @app.errorhandler(404)
 @app.errorhandler(NotFoundException)
 def not_found_exception(e):
-    return JsonTools.Reply(dict(error = "File or Directory Not Found.")), 404
+    return JsonTools.Reply(dict(error="File or Directory Not Found.")), 404
 
 # HTTP 405 - Method Not Allowed
 @app.errorhandler(405)
 @app.errorhandler(MethodNotAllowedException)
 def method_not_allowed_exception(e):
-    return JsonTools.Reply(dict(error = "The method is not allowed for the requested URL.")), 405
+    return JsonTools.Reply(dict(error="The method is not allowed for the requested URL.")), 405
 
 # HTTP 500 - Internal Server Error
 @app.errorhandler(500)
@@ -96,7 +99,7 @@ def exceptiontester():
 @app.route("/logtester")
 def logtester():
     app.logger.error("LOG TEST")
-    return JsonTools.Reply(dict(msg = "Success"))
+    return JsonTools.Reply(dict(msg="Success"))
 
 ####################################################################################
 #     SERVICE DEFINITIONS
@@ -185,13 +188,15 @@ def getfiles(filepath):
             if not fileName.endswith('.metadata'):
                 fileList.append(fileName)
 
-    return JsonTools.Reply(dict(files = fileList, subdirs = dirList))
+    return JsonTools.Reply(dict(files=fileList, subdirs=dirList))
 
 @app.route('/uploadpublic', methods=['GET', 'POST'])
 def upload_file_public():
     # If post, they're sending us the file.  Save the file and its associated metadata
     if request.method == 'POST':
-        return upload_file(envproperties.UPLOAD_PUBLIC_FOLDER)
+#        return upload_file(envproperties.UPLOAD_PUBLIC_FOLDER)
+        if upload_file(envproperties.UPLOAD_PUBLIC_FOLDER):
+            return JsonTools.Reply(dict(success="True"))
 
     # Else it's GET, so show them the Upload form (test form for now)
     # TODO - replace this with a template that mirrors the DOM member content submission page
@@ -210,7 +215,9 @@ def upload_file_public():
 def upload_file_staging():
     # If post, they're sending us the file, so save it
     if request.method == 'POST':
-        return upload_file(envproperties.UPLOAD_STAGING_FOLDER)
+#        return upload_file(envproperties.UPLOAD_STAGING_FOLDER)
+        if upload_file(envproperties.UPLOAD_STAGING_FOLDER):
+            return JsonTools.Reply(dict(success="True"))
 
     # Else it's GET, so show them the Upload form (test form for now)
     # TODO - replace this with a template that mirrors the DOM member content submission page
@@ -225,6 +232,78 @@ def upload_file_staging():
     </form>
     '''
 
+@app.route('/uploadinternal', methods=['POST'])
+def upload_file_internal():
+    genre = 60
+    song_type, id_subcat = 0, 0
+    content_type = request.form['content_type']
+
+    if content_type == 'Underwriting':
+        song_type, id_subcat, prefix = 4, 17, 'Underwriting'
+    elif content_type == 'Sweeper':
+        song_type, id_subcat, prefix = 2, 12, 'Sweeper'
+    elif content_type == 'KUVO Station ID':
+        song_type, id_subcat, prefix = 2, 15, 'KUVO_Station_ID'
+    elif content_type == 'KUVO + K225BS Station ID':
+        song_type, id_subcat, prefix = 2, 16, 'KUVO_K225BS_Station_ID'
+    elif content_type == 'PSA':
+        song_type, id_subcat, prefix = 4, 20, 'PSA'
+    elif content_type == 'Other':
+        song_type, id_subcat, prefix = 6, 11, 'Other'
+    else:
+        raise BadRequestException(error="Not a valid content_type.", payload=dict(content_type=content_type))
+
+    upload_path = "%s/internalcontent/%s" % (envproperties.UPLOAD_LIBRARY_FOLDER, prefix)
+    if not upload_file(upload_path):
+        raise InternalServerErrorException(error="File upload failed! Check server log file.")
+
+    file = request.files['file']
+    filename = secure_filename(file.filename)
+    full_path = os.path.join(upload_path, filename)
+    duration = RadioSongLib.getDurationFromFile(full_path)
+    frontend_path = "%s\\internalcontent\\%s\\%s" % (envproperties.RADIODJ_CLIENT_FOLDER, prefix, filename)
+    cue_times = RadioSongLib.getCueTimesFromDuration(duration)
+
+    eyed3.log.setLevel("ERROR")
+    audiofile = eyed3.load(full_path)
+    tag = audiofile.tag
+
+    artist = 'Default Artist'
+    album = 'Default Album'
+
+    if tag is not None:
+        if tag.artist is not None:
+            artist = tag.artist
+        if tag.album is not None:
+            album = tag.album
+
+    today = datetime.today()
+    year = today.year
+
+    radioDj = DenhacRadioDjDb()
+    radioDj.upsertSongs(frontend_path,
+                        song_type=song_type,
+                        id_subcat=id_subcat,
+                        id_genre=genre,
+                        duration=duration,
+                        artist=artist,
+                        album=album,
+                        year=year,
+                        copyright='',
+                        title=filename,
+                        publisher='',
+                        composer='',
+                        cue_times=cue_times,
+                        enabled=1,
+                        comments='',
+                        play_limit=0,
+                        limit_action=0)
+
+#    return JsonTools.Reply(dict(content_type=content_type, song_type=song_type, id_subcat=id_subcat, prefix=prefix,
+#                                upload_path=upload_path, duration=duration, full_path=full_path,
+#                                frontend_path=frontend_path, cue_times=cue_times))
+    return redirect(url_for('manageinternalcontent'))
+
 # This helper function makes upload_file() a lot more readable.
 # It checks the input file type against allowed values.
 # With thanks to http://flask.pocoo.org/docs/0.10/patterns/fileuploads/
@@ -237,7 +316,7 @@ def upload_file(folder):
     if file and allowed_file(file.filename):
         app.config['UPLOAD_FOLDER'] = folder
         file.save(os.path.join(folder, filename))
-        return JsonTools.Reply(dict(success = "True"))
+        return JsonTools.Reply(dict(success="True"))
     else:
         raise BadRequestException(error="Not a valid file type.", payload=dict(filename = filename))
 

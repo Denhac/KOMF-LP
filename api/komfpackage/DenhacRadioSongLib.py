@@ -70,7 +70,8 @@ class RadioSongLib:
     #  --bindir="$HOME/bin" \
     #  --enable-libmp3lame
     def getDurationFromFile(filePath):
-        cmd = "/root/bin/ffprobe -i " + RadioSongLib.shellquote(filePath) + " -show_entries format=duration -v quiet -of csv=\"p=0\""
+#        cmd = "/root/bin/ffprobe -i " + RadioSongLib.shellquote(filePath) + " -show_entries format=duration -v quiet -of csv=\"p=0\""
+        cmd = "/usr/bin/ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 %s" % RadioSongLib.shellquote(filePath)
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         duration = proc.stdout.read()
         return duration[:-4]    # Reduce from 7 decimal places to 3
@@ -442,7 +443,7 @@ class RadioSongLib:
         os.chown(abs_path, self.uid, self.gid)
 
     def writeToDB(self, metadata):
-        genre_id  = self.radioDj.getGenreIdByName(metadata['genre'])
+        genre_id = self.radioDj.getGenreIdByName(metadata['genre'])
         subcat_id = self.radioDj.getSubcategoryIdByName(metadata['theme'])
 
         # Set certain defaults that may be changed if we have an Indecent file

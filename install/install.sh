@@ -52,7 +52,9 @@ sudo yum -y update
 
 yes | sudo pip install --upgrade pip
 yes | sudo pip install --upgrade setuptools
-yes | sudo pip install flask flask-cors PyMySQL eyed3 gTTS urllib3
+yes | sudo pip install flask flask-cors PyMySQL gTTS urllib3
+yes | sudo pip install eyed3==0.8.12
+
 
 # To fix a versioning issue causing wsgi failure
 yes | sudo pip install werkzeug==0.16.0
@@ -101,6 +103,10 @@ else
 fi
 
 ########################################################
+sudo cp /root/bin/ffmpeg /usr/bin/.
+sudo cp /root/bin/ffprobe /usr/bin/.
+
+########################################################
 
 echo 'Updating services...'
 sudo systemctl enable mariadb httpd ntpd
@@ -119,6 +125,10 @@ sudo touch /var/www/log/apifunctions.log
 sudo chmod 777 /var/www/log
 sudo chmod 666 /var/www/log/apifunctions.log
 sudo chown apiuser:apiuser /var/www/log/apifunctions.log
+
+sudo mkdir -p /var/www/files/library/internalcontent
+sudo mkdir -p /var/www/files/library/internalcontent/{Underwriting,Sweeper,KUVO_Station_ID,KUVO_K225BS_Station_ID,PSA,Other}
+sudo chown -R apiuser:apiuser /var/www/files/internalcontent
 
 ########################################################
 

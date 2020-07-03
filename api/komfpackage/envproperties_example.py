@@ -21,6 +21,7 @@ ALLOWED_EXTENSIONS = set(['mp3'])
 
 # Mapped folder on the client PC
 RADIODJ_CLIENT_FOLDER = '\\\\127.0.0.1\\library'
+UPLOAD_INTERNAL_FOLDER = RADIODJ_CLIENT_FOLDER + '\\internalcontent'
 
 ########################################
 # Variables primarily for the script importfromdom.py, but could be used by others

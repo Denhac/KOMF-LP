@@ -6,6 +6,33 @@
 		<b>Manage Internal Content</b>
 		<hr/><br/>
 
+		<br/>
+		<b>Add New Internal Content:</b>
+		<form action="{{ url_for('upload_file_internal') }}" method=post enctype=multipart/form-data>
+			<p><input type=file name=file>
+
+			<table border="1">
+				<tr>
+					<td><b>Type</b></td>
+				</tr>
+				<tr>
+					<td>
+						<select name="content_type">
+							<option value="Underwriting">Underwriting</option>
+							<option value="Sweeper">Sweeper</option>
+							<option value="KUVO Station ID">KUVO Station ID</option>
+							<option value="KUVO + K225BS Station ID">KUVO + K225BS Station ID</option>
+							<option value="PSA">PSA</option>
+							<option value="Other">Other</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+			<br/>
+			<input type="submit" value="Upload"/>
+		</form>
+		<br/><hr/><br/><br/>
+
 		<b>Internal Tracks List:</b>
 		{{ komf_track_summary_comment }}
 		<table border="2">
