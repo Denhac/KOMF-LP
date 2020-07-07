@@ -4,6 +4,7 @@
 import base64, json, logging, os, sys, urllib2
 from datetime import datetime
 from threading import Thread
+import socket
 
 # Flask and other third-party includes
 from logging.handlers import RotatingFileHandler
@@ -41,8 +42,9 @@ app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024   # 1GB
 ###### Setting up the formatter for the log file
 ####################################################################################
 if app.debug is not True:
+    app.logger.setLevel(logging.DEBUG)
     file_handler = RotatingFileHandler(envproperties.API_LOG_FILE, maxBytes=1024 * 1024 * 100, backupCount=20)
-    file_handler.setLevel(logging.ERROR)
+    file_handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     file_handler.setFormatter(formatter)
     app.logger.addHandler(file_handler)
@@ -98,7 +100,7 @@ def exceptiontester():
 # Logging tester
 @app.route("/logtester")
 def logtester():
-    app.logger.error("LOG TEST")
+    app.logger.debug("LOG TEST")
     return JsonTools.Reply(dict(msg="Success"))
 
 ####################################################################################
@@ -369,17 +371,18 @@ def themeblocktotals():
 
     return render_template('themeblocktotals.html', themeblocksEnabled = themeblocksEnabled, themeblocksDisabled = themeblocksDisabled, genresEnabled = genresEnabled, genresDisabled = genresDisabled, enableds=enableds, unknowns=unknowns, envproperties=envproperties)
 
-def checkPassword():
 
+def checkPassword():
     if 'logged_in' not in session or not session['logged_in']:
-        app.logger.error('First is true')
+        app.logger.debug('First is true')
         return False
 
-    if 'hash_pw'   not in session or session['hash_pw'] != envproperties.komf_password_hash:
-        app.logger.error('Second is true')
+    if 'hash_pw' not in session or session['hash_pw'] != envproperties.komf_password_hash:
+        app.logger.debug('Second is true')
         return False
 
     return True
+
 
 @app.route('/updateschedules', methods=['GET', 'POST'])
 def updateschedules():
@@ -535,7 +538,7 @@ def nowplaying():
     song_info = radioDj.getSongById(request.form['songID'])
     subcategory_id = song_info['id_subcat']
     if subcategory_id > 10:
-        app.logger.error(msg="Subcategory is %s. Ignoring for rotation purposes." % subcategory_id)
+        app.logger.info(msg="Subcategory is %s. Ignoring for rotation purposes." % subcategory_id)
         return JsonTools.Reply(dict(msg="Success"))
     # End #23
 
@@ -548,6 +551,14 @@ def nowplaying():
     if envproperties.send_to_icecast:
         thread2 = Thread(target=background_call_icecast, args=[request.form])
         thread2.start()
+
+    if envproperties.send_to_kuvo:
+        thread3 = Thread(target=background_call_kuvo, args=[request.form])
+        thread3.start()
+
+    if envproperties.send_to_kuvo_hd3:
+        thread4 = Thread(target=background_call_kuvo_hd3, args=[request.form])
+        thread4.start()
 
     return JsonTools.Reply(dict(msg="Success"))
 
@@ -584,9 +595,9 @@ def background_call_radiorethink(vars):
         url += "&detailUrl=" + urllib2.quote(extended_info['show_link'], '')
 
     try:
-        app.logger.error("Calling RadioRethink URL: " + url)
+        app.logger.debug("Calling RadioRethink URL: %s" % url)
         urllib2.urlopen(url=url, data=None, timeout=60)
-        app.logger.error("Successfully rotated RadioRethink metadata.")
+        app.logger.info("Successfully rotated RadioRethink metadata.")
 
     except:
         exType, value, traceback = sys.exc_info()
@@ -601,7 +612,7 @@ def background_call_radiorethink(vars):
 
 def background_call_icecast(vars):
     if 'track' not in vars:
-        app.logger.error("No track data to send to Icecast.")
+        app.logger.info("No track data to send to Icecast.")
         return
 
     get_vars = 'mount=/stream&mode=updinfo&song='
@@ -614,14 +625,14 @@ def background_call_icecast(vars):
     url = envproperties.icecast_url + '?' + get_vars
 
     try:
-        app.logger.error("Calling Icecast URL: " + url)
+        app.logger.debug("Calling Icecast URL: " + url)
 
         req = urllib2.Request(url)
         b64auth = base64.standard_b64encode("%s:%s" % (envproperties.icecast_user, envproperties.icecast_password))
         req.add_header("Authorization", "Basic %s" % b64auth)
         urllib2.urlopen(req)
 
-        app.logger.error("Successfully rotated Icecast metadata.")
+        app.logger.info("Successfully rotated Icecast metadata.")
 
     except:
         exType, value, traceback = sys.exc_info()
@@ -635,6 +646,68 @@ def background_call_icecast(vars):
                               toAddr=envproperties.ERROR_TO_EMAIL_LIST,
                               subject='Callout to Icecast failed',
                               body=message_body)
+
+
+def background_call_kuvo(vars):
+    if 'track' not in vars:
+        app.logger.info("No track data to send to KUVO.")
+        return
+
+    post_vars = "track=%s" % vars['track'].replace('&', '&amp;')
+
+    if 'artist' in vars and 'unknown' not in vars['artist'].lower():
+        post_vars += "&artist=%s" % vars['artist'].replace('&', '&amp;')
+
+    try:
+        app.logger.debug("KUVO post_vars: %s" % post_vars)
+        app.logger.debug("Calling KUVO URL: %s" % envproperties.kuvo_url)
+
+        ip, port = envproperties.kuvo_url.split(':')
+        sock = socket.socket(socket.AF_INET,  # Internet
+                             socket.SOCK_DGRAM)  # UDP
+        sock.sendto(post_vars, (ip, int(port)))
+        app.logger.info("Successfully rotated KUVO metadata.")
+
+    except:
+        exType, value, traceback = sys.exc_info()
+        app.logger.error(str(value))
+        DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
+                              toAddr=envproperties.ERROR_TO_EMAIL_LIST,
+                              subject='Callout to KUVO failed',
+                              body='Type:  ' + str(exType) + '\n' +
+                                   'Value: ' + str(value) + '\n' +
+                                   'Trace: ' + str(traceback))
+
+
+def background_call_kuvo_hd3(vars):
+    if 'track' not in vars:
+        app.logger.info("No track data to send to KUVO HD3.")
+        return
+
+    post_vars = "track=%s" % vars['track'].replace('&', '&amp;')
+
+    if 'artist' in vars and 'unknown' not in vars['artist'].lower():
+        post_vars += "&artist=%s" % vars['artist'].replace('&', '&amp;')
+
+    try:
+        app.logger.debug("KUVO HD3 post_vars: %s" % post_vars)
+        app.logger.debug("Calling KUVO HD3 URL: %s" % envproperties.kuvo_hd3_url)
+
+        ip, port = envproperties.kuvo_hd3_url.split(':')
+        sock = socket.socket(socket.AF_INET,  # Internet
+                             socket.SOCK_DGRAM)  # UDP
+        sock.sendto(post_vars, (ip, int(port)))
+        app.logger.info("Successfully rotated KUVO HD3 metadata.")
+
+    except:
+        exType, value, traceback = sys.exc_info()
+        app.logger.error(str(value))
+        DenhacEmail.SendEmail(fromAddr=envproperties.ERROR_FROM_EMAIL,
+                              toAddr=envproperties.ERROR_TO_EMAIL_LIST,
+                              subject='Callout to KUVO HD3 failed',
+                              body='Type:  ' + str(exType) + '\n' +
+                                   'Value: ' + str(value) + '\n' +
+                                   'Trace: ' + str(traceback))
 
 
 @app.route('/viewsongimportfailures', methods=['GET'])

@@ -76,5 +76,11 @@ icecast_url = 'http://tempuri.org'
 icecast_user = 'user'
 icecast_password = 'password'
 
+send_to_kuvo = True
+kuvo_url = '127.0.0.1:80'
+
+send_to_kuvo_hd3 = True
+kuvo_hd3_url = '127.0.0.1:80'
+
 ########################################
 is_test_server = False
